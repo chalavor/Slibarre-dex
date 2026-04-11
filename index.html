@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SLIBARD-DEX | RARITY EDITION</title>
+    <style>
+        :root { --primary: #00d2ff; --bg: #000; }
+        body, html { margin: 0; padding: 0; background: var(--bg); color: white; font-family: sans-serif; height: 100vh; overflow: hidden; }
+
+        /* --- INTRO --- */
+        #intro-screen { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; }
+        .door { height: 50%; background: #0d0d0d; transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1); }
+        .door-top { border-bottom: 2px solid var(--primary); }
+        .door-bottom { border-top: 2px solid var(--primary); }
+        #start-btn { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            padding: 20px 40px; background: #000; border: 2px solid var(--primary);
+            color: white; font-weight: bold; z-index: 10000; letter-spacing: 5px; cursor: pointer;
+        }
+        .opened .door-top { transform: translateY(-101%); }
+        .opened .door-bottom { transform: translateY(101%); }
+        .opened #start-btn { display: none; }
+
+        /* --- GRILLE --- */
+        #main-site { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
+        .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-bottom: 120px; }
+        .card-thumb { background: #111; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #333; cursor: pointer; }
+
+        /* --- BOOSTER --- */
+        #booster-anim { position: fixed; inset: 0; z-index: 9500; display: none; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; flex-direction: column; }
+        .pack-wrapper { width: 260px; height: 420px; position: relative; perspective: 1000px; }
+        .pack-half { position: absolute; width: 100%; height: 50%; background: #222; border: 3px solid #444; display: flex; justify-content: center; align-items: center; font-size: 5rem; }
+        .p-top { top: 0; border-radius: 15px 15px 0 0; }
+        .p-bottom { bottom: 0; border-radius: 0 0 15px 15px; }
+        .ripping .p-top { animation: ripTop 0.8s forwards; }
+        .ripping .p-bottom { animation: ripBottom 0.8s forwards; }
+        @keyframes ripTop { 100% { transform: translateY(-150%) rotateX(-45deg); opacity: 0; } }
+        @keyframes ripBottom { 100% { transform: translateY(150%) rotateX(45deg); opacity: 0; } }
+
+        /* --- FOCUS CARTE 3D --- */
+        #focus-overlay { 
+            position: fixed; inset: 0; background: radial-gradient(circle at center, #1a1a1a, #000); 
+            display: none; justify-content: center; align-items: center; z-index: 8000; perspective: 1500px;
+            touch-action: none;
+        }
+        .card-3d-wrapper { width: 300px; height: 440px; position: relative; transform-style: preserve-3d; transition: transform 0.1s ease-out; }
+        
+        .reveal-pop { animation: popOut 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popOut { 0% { transform: scale(0) rotateY(1080deg); } 100% { transform: scale(1) rotateY(0deg); } }
+
+        .card-face { position: absolute; inset: 0; border-radius: 18px; border: 5px solid white; overflow: hidden; background: #000; backface-visibility: hidden; }
+        .card-back { transform: rotateY(180deg); }
+        
+        /* Brillance Standard (Argentée) */
+        .specular-shine { 
+            position: absolute; inset: -150%; z-index: 4; pointer-events: none; 
+            background: linear-gradient(110deg, 
+                transparent 40%, 
+                rgba(255,255,255,0.2) 45%, 
+                rgba(255,255,255,0.5) 50%, 
+                rgba(255,255,255,0.2) 55%, 
+                transparent 60%
+            ); 
+            mix-blend-mode: color-dodge;
+        }
+
+        /* Brillance LEGENDARY (Dorée / Holographique) */
+        .legendary .specular-shine {
+            background: linear-gradient(110deg, 
+                transparent 30%, 
+                rgba(255, 215, 0, 0.3) 40%, 
+                rgba(255, 0, 255, 0.5) 50%, 
+                rgba(0, 255, 255, 0.3) 60%, 
+                transparent 70%
+            );
+            mix-blend-mode: screen;
+        }
+
+        /* Bordures et Glows */
+        .card-face.common { border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.1); }
+        .card-face.legendary { border-color: gold; box-shadow: 0 0 40px rgba(255, 215, 0, 0.5); }
+
+        .img-container { position: absolute; inset: 0; z-index: 1; }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        #pack-selection { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .pack-item-btn { width: 220px; padding: 20px; margin: 10px; background: #111; border: 2px solid white; border-radius: 15px; cursor: pointer; text-align: center; }
+        #pack-opener-area { position: fixed; bottom: 30px; width: 100%; display: flex; justify-content: center; z-index: 5000; }
+        #open-pack-btn { background: white; color: black; border: none; padding: 15px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255,255,255,0.2); }
+        .close-btn { position: absolute; top: 20px; right: 20px; font-size: 3rem; color: white; cursor: pointer; z-index: 8005; }
+    </style>
+</head>
+<body>
+
+<audio id="snd-rip" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+
+<div id="intro-screen">
+    <button id="start-btn" onclick="openDex()">DÉMARRER</button>
+    <div class="door door-top"></div>
+    <div class="door door-bottom"></div>
+</div>
+
+<div id="main-site">
+    <h2 style="text-align:center; letter-spacing: 5px; color:#444; margin-top:40px;">MA COLLECTION</h2>
+    <div class="pokedex-grid" id="grid"></div>
+</div>
+
+<div id="pack-selection">
+    <h2>CHOISIR UN PACK</h2>
+    <div class="pack-item-btn" onclick="preparePack('💧')">💧 PACK AQUA</div>
+    <div class="pack-item-btn" style="border-color: gold;" onclick="preparePack('👑')">👑 PACK ELITE (20% LEGENDARY)</div>
+</div>
+
+<div id="booster-anim">
+    <div class="pack-wrapper" id="pack-wrap" onclick="triggerRip()">
+        <div class="pack-half p-top" id="half-t"></div>
+        <div class="pack-half p-bottom" id="half-b"></div>
+    </div>
+</div>
+
+<div id="focus-overlay">
+    <span class="close-btn" onclick="closeCard()">&times;</span>
+    <div class="card-3d-wrapper" id="card-3d">
+        <div class="card-face card-front" id="front-content"></div>
+        <div class="card-face card-back" id="back-content"></div>
+    </div>
+</div>
+
+<div id="pack-opener-area">
+    <button id="open-pack-btn" onclick="document.getElementById('pack-selection').style.display='flex'">OBTENIR DES CARTES</button>
+</div>
+
+<script>
+    const members = [
+        { id: 0, name: 'malo', icon: '💧', color: '#00d2ff', desc: 'Maître des flux.' },
+        { id: 1, name: 'lilian', icon: '👁️', color: '#bd00ff', desc: 'L\'Observateur.' },
+        { id: 2, name: 'charli', icon: '🍕', color: '#ffcc00', desc: 'Le Gourmet.' },
+        { id: 3, name: 'arthur', icon: '⛩️', color: '#ff3e3e', desc: 'Le Shogun.' },
+        { id: 4, name: 'danny', icon: '🎮', color: '#39ff14', desc: 'Le Gamer.' }
+    ];
+
+    function updateGrid() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        members.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'card-thumb';
+            div.innerHTML = `<div style="font-size:2.5rem">${m.icon}</div><div style="font-weight:bold; margin-top:10px;">${m.name.toUpperCase()}</div>`;
+            div.onclick = () => openCard(m, false, Math.random() < 0.1); // Petite chance de légendaire en collec
+            grid.appendChild(div);
+        });
+    }
+
+    function openDex() {
+        const intro = document.getElementById('intro-screen');
+        intro.classList.add('opened');
+        setTimeout(() => { intro.style.display = 'none'; }, 800);
+        updateGrid();
+    }
+
+    function preparePack(icon) {
+        document.getElementById('pack-selection').style.display = 'none';
+        document.getElementById('booster-anim').style.display = 'flex';
+        document.getElementById('half-t').innerText = icon;
+        document.getElementById('half-b').innerText = icon;
+    }
+
+    function triggerRip() {
+        const pack = document.getElementById('pack-wrap');
+        if (pack.classList.contains('ripping')) return;
+        document.getElementById('snd-rip').play();
+        pack.classList.add('ripping');
+        setTimeout(() => {
+            document.getElementById('booster-anim').style.display = 'none';
+            pack.classList.remove('ripping');
+            const card = members[Math.floor(Math.random()*members.length)];
+            // 20% de chance d'avoir une légendaire à l'ouverture du pack
+            openCard(card, true, Math.random() < 0.2);
+        }, 800);
+    }
+
+    let isDragging = false;
+    let startX, startY;
+    let currentRotY = 0;
+    let currentRotX = 0;
+
+    function openCard(m, isPop, isLegendary) {
+        const overlay = document.getElementById('focus-overlay');
+        const card = document.getElementById('card-3d');
+        overlay.style.display = 'flex';
+        
+        currentRotY = 0; currentRotX = 0;
+        card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+        
+        if(isPop) {
+            card.classList.add('reveal-pop');
+            setTimeout(() => card.classList.remove('reveal-pop'), 1000);
+        }
+
+        const rarityClass = isLegendary ? 'legendary' : 'common';
+
+        // Update RECTO
+        const front = document.getElementById('front-content');
+        front.className = `card-face card-front ${rarityClass}`;
+        front.innerHTML = `
+            <div class="specular-shine" id="shine-f"></div>
+            <div class="img-container"><img src="${m.name}_face.png"></div>
+            <div style="position:absolute; bottom:20px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; border-left:5px solid ${isLegendary ? 'gold' : m.color}; z-index:10; backdrop-filter:blur(5px);">
+                <div style="font-size:0.6rem; color:gold; margin-bottom:2px; font-weight:bold;">${isLegendary ? '✦ LÉGENDAIRE' : '• STANDARD'}</div>
+                <h3 style="margin:0; color:${isLegendary ? 'gold' : 'white'};">${m.name.toUpperCase()}</h3>
+                <p style="margin:5px 0 0; font-size:0.85rem; opacity:0.8;">${m.desc}</p>
+            </div>`;
+
+        // Update VERSO
+        const back = document.getElementById('back-content');
+        back.className = `card-face card-back ${rarityClass}`;
+        back.innerHTML = `
+            <div class="specular-shine" id="shine-b"></div>
+            <div class="img-container"><img src="${m.name}_dos.png"></div>
+        `;
+    }
+
+    function updateCardTransform() {
+        const card = document.getElementById('card-3d');
+        card.style.transform = `rotateY(${currentRotY}deg) rotateX(${currentRotX}deg)`;
+        
+        const shineF = document.getElementById('shine-f');
+        const shineB = document.getElementById('shine-b');
+        
+        // Multiplicateur pour que le reflet bouge plus vite que la rotation
+        const moveX = (currentRotY % 360) * 3;
+        const moveY = currentRotX * 3;
+
+        if(shineF) shineF.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        if(shineB) shineB.style.transform = `translate(${-moveX}px, ${moveY}px)`;
+    }
+
+    const startAction = (e) => {
+        isDragging = true;
+        startX = (e.pageX || e.touches[0].pageX);
+        startY = (e.pageY || e.touches[0].pageY);
+    };
+
+    const moveAction = (e) => {
+        if (!isDragging) return;
+        const x = (e.pageX || e.touches[0].pageX);
+        const y = (e.pageY || e.touches[0].pageY);
+        currentRotY += (x - startX) * 0.7;
+        currentRotX = Math.max(-60, Math.min(60, currentRotX - (y - startY) * 0.7));
+        startX = x; startY = y;
+        updateCardTransform();
+    };
+
+    const stopAction = () => { isDragging = false; };
+
+    const overlay = document.getElementById('focus-overlay');
+    overlay.addEventListener('mousedown', startAction);
+    overlay.addEventListener('touchstart', startAction);
+    window.addEventListener('mousemove', moveAction);
+    window.addEventListener('touchmove', moveAction);
+    window.addEventListener('mouseup', stopAction);
+    window.addEventListener('touchend', stopAction);
+
+    function closeCard() { document.getElementById('focus-overlay').style.display = 'none'; }
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
