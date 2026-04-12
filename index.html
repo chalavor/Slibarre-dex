@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SLIBARD-DEX | ULTRA CLOUD</title>
+    <title>SLIBARD-DEX | FINAL EDITION</title>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyAl_mBXvFj2UpshnmHFdvWQ4Bp_6Gyf1nw",
@@ -22,121 +22,140 @@
         const app = initializeApp(firebaseConfig);
         window.auth = getAuth(app);
         window.db = getFirestore(app);
-        window.createUser = createUserWithEmailAndPassword;
-        window.signIn = signInWithEmailAndPassword;
-        window.logout = signOut;
-        window.dbDoc = doc; window.dbSet = setDoc; window.dbGet = getDoc;
+        window.dbDoc = doc; window.dbSet = setDoc;
 
         onAuthStateChanged(window.auth, (user) => {
             const btn = document.getElementById('auth-trigger-btn');
             if (user) {
-                btn.innerText = "👤 MON COMPTE";
-                btn.style.borderColor = "gold";
-                loadUserCollection(user.uid);
+                btn.innerText = "👤 COMPTE : " + user.email.split('@')[0].toUpperCase();
+                onSnapshot(window.dbDoc(window.db, "users", user.uid), (doc) => {
+                    if(doc.exists()) {
+                        const data = doc.data();
+                        userInventory = data.inventory || {};
+                        doublonsCount = data.doublons || 0;
+                        if(data.charges !== undefined) charges = data.charges;
+                        if(data.lastRecharge !== undefined) lastRecharge = data.lastRecharge;
+                        updateGrid();
+                    }
+                });
             } else {
-                btn.innerText = "🔑 CONNEXION";
-                btn.style.borderColor = "var(--primary)";
+                btn.innerText = "🔑 CONNEXION / INSCRIPTION";
                 userInventory = {}; 
                 updateGrid();
             }
         });
+
+        window.handleAuth = async () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            try {
+                if(isSignup) await createUserWithEmailAndPassword(window.auth, e, p);
+                else await signInWithEmailAndPassword(window.auth, e, p);
+                document.getElementById('auth-modal').style.display = 'none';
+            } catch(err) { alert("Erreur: " + err.message); }
+        };
     </script>
 
     <style>
-        :root { --primary: #00d2ff; --bg: #0b0b0b; --gold: #ffd700; }
-        body, html { margin: 0; padding: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; }
+        :root { --primary: #00d2ff; --bg: #000; }
+        body, html { margin: 0; padding: 0; background: var(--bg); color: white; font-family: sans-serif; height: 100vh; overflow: hidden; }
 
-        /* --- UI COMPTE --- */
-        #auth-trigger-btn { position: fixed; top: 15px; right: 15px; z-index: 10002; background: rgba(0,0,0,0.8); color: white; border: 2px solid var(--primary); padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 0.7rem; cursor: pointer; backdrop-filter: blur(5px); }
-        #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: none; justify-content: center; align-items: center; }
-        .modal-content { background: #111; padding: 30px; border-radius: 25px; border: 1px solid #333; width: 85%; max-width: 320px; text-align: center; }
-        .modal-content input { width: 100%; padding: 14px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 12px; box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 14px; background: var(--primary); border: none; border-radius: 12px; font-weight: bold; cursor: pointer; color: black; }
+        #auth-trigger-btn { position: absolute; top: 20px; width: 240px; left: 50%; transform: translateX(-50%); z-index: 10005; background: rgba(0,0,0,0.8); color: white; border: 2px solid var(--primary); padding: 12px; border-radius: 30px; font-weight: bold; font-size: 0.7rem; cursor: pointer; }
+        #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 20000; display: none; justify-content: center; align-items: center; }
+        .modal-content { background: #111; padding: 30px; border-radius: 25px; border: 1px solid #333; width: 280px; text-align: center; }
+        .modal-content input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; }
 
-        /* --- INTRO --- */
-        #intro-screen { position: fixed; inset: 0; z-index: 10000; display: flex; flex-direction: column; }
-        .door { height: 50%; background: #080808; transition: transform 1s cubic-bezier(0.85, 0, 0.15, 1); border-color: var(--primary); border-style: solid; }
-        .door-top { border-width: 0 0 2px 0; }
-        .door-bottom { border-width: 2px 0 0 0; }
+        #intro-screen { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; }
+        .door { height: 50%; background: #0d0d0d; transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1); }
+        .door-top { border-bottom: 2px solid var(--primary); }
+        .door-bottom { border-top: 2px solid var(--primary); }
+        #start-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; background: #000; border: 2px solid var(--primary); color: white; font-weight: bold; z-index: 10000; letter-spacing: 5px; cursor: pointer; }
         .opened .door-top { transform: translateY(-101%); }
         .opened .door-bottom { transform: translateY(101%); }
-        #start-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 45px; background: #000; border: 2px solid var(--primary); color: white; font-weight: bold; z-index: 10001; letter-spacing: 8px; }
 
-        /* --- GRILLE --- */
-        #main-site { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; padding-top: 70px; }
-        .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 18px; padding-bottom: 120px; }
-        .card-thumb { background: #161616; border-radius: 20px; padding: 25px 15px; text-align: center; border: 1px solid #222; position: relative; transition: 0.3s; cursor: pointer; }
-        .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 0.8rem; opacity: 0.5; }
+        #main-site { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
+        .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-bottom: 120px; margin-top: 60px;}
+        .card-thumb { background: #111; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #333; position: relative; cursor: pointer; }
+        .lock-icon { position: absolute; top: 5px; right: 8px; opacity: 0.4; font-size: 0.8rem; }
 
-        /* --- RARITY MENU --- */
-        #rarity-menu { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 15000; display: none; justify-content: center; align-items: center; flex-direction: column; }
-        .choice-card { width: 240px; padding: 25px; margin: 12px; border-radius: 20px; text-align: center; cursor: pointer; border: 2px solid #222; background: #111; transition: 0.3s; }
-        .choice-card.locked { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; border-style: dashed; }
-
-        /* --- BOOSTER ANIM --- */
-        #booster-anim { position: fixed; inset: 0; z-index: 18000; display: none; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; flex-direction: column; }
+        #booster-anim { position: fixed; inset: 0; z-index: 9500; display: none; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; flex-direction: column; }
         .pack-wrapper { width: 260px; height: 420px; position: relative; perspective: 1000px; }
-        .pack-half { position: absolute; width: 100%; height: 50%; background: #1a1a1a; border: 3px solid #333; display: flex; justify-content: center; align-items: center; font-size: 5rem; z-index: 2; }
-        .p-top { top: 0; border-radius: 20px 20px 0 0; }
-        .p-bottom { bottom: 0; border-radius: 0 0 20px 20px; }
+        .pack-half { position: absolute; width: 100%; height: 50%; background: #222; border: 3px solid #444; display: flex; justify-content: center; align-items: center; font-size: 5rem; }
+        .p-top { top: 0; border-radius: 15px 15px 0 0; }
+        .p-bottom { bottom: 0; border-radius: 0 0 15px 15px; }
         .ripping .p-top { animation: ripTop 0.8s forwards; }
         .ripping .p-bottom { animation: ripBottom 0.8s forwards; }
-        @keyframes ripTop { 100% { transform: translateY(-160%) rotateX(-60deg); opacity: 0; } }
-        @keyframes ripBottom { 100% { transform: translateY(160%) rotateX(60deg); opacity: 0; } }
+        @keyframes ripTop { 100% { transform: translateY(-150%) rotateX(-45deg); opacity: 0; } }
+        @keyframes ripBottom { 100% { transform: translateY(150%) rotateX(45deg); opacity: 0; } }
 
-        /* --- FOCUS CARTE 3D (ULTRA GLOW) --- */
-        #focus-overlay { position: fixed; inset: 0; background: radial-gradient(circle at center, #1a1a1a, #000); display: none; justify-content: center; align-items: center; z-index: 20000; perspective: 1500px; touch-action: none; }
-        .card-3d-wrapper { width: 300px; height: 430px; position: relative; transform-style: preserve-3d; transition: transform 0.1s ease-out; }
-        .card-face { position: absolute; inset: 0; border-radius: 20px; border: 5px solid white; overflow: hidden; background: #000; backface-visibility: hidden; }
+        #focus-overlay { position: fixed; inset: 0; background: radial-gradient(circle at center, #1a1a1a, #000); display: none; justify-content: center; align-items: center; z-index: 8000; perspective: 1500px; touch-action: none; }
+        .card-3d-wrapper { width: 300px; height: 440px; position: relative; transform-style: preserve-3d; transition: transform 0.1s ease-out; }
+        .reveal-pop { animation: popOut 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popOut { 0% { transform: scale(0) rotateY(720deg); } 100% { transform: scale(1) rotateY(0deg); } }
+        .card-face { position: absolute; inset: 0; border-radius: 18px; border: 5px solid white; overflow: hidden; background: #000; backface-visibility: hidden; }
         .card-back { transform: rotateY(180deg); }
-        
-        .specular-shine { 
-            position: absolute; inset: -150%; z-index: 4; pointer-events: none; 
-            background: linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.2) 55%, transparent 60%); 
-            mix-blend-mode: color-dodge; transition: transform 0.1s ease-out;
-        }
-        .legendary .specular-shine {
-            background: linear-gradient(110deg, transparent 30%, rgba(255, 215, 0, 0.4) 40%, rgba(255, 0, 255, 0.6) 50%, rgba(0, 255, 255, 0.4) 60%, transparent 70%);
-            mix-blend-mode: screen;
-        }
-
-        .img-container { position: absolute; inset: 0; }
+        .specular-shine { position: absolute; inset: -150%; z-index: 4; pointer-events: none; background: linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.2) 55%, transparent 60% ); mix-blend-mode: color-dodge; }
+        .legendary .specular-shine { background: linear-gradient(110deg, transparent 30%, rgba(255, 215, 0, 0.3) 40%, rgba(255, 0, 255, 0.5) 50%, rgba(0, 255, 255, 0.3) 60%, transparent 70% ); mix-blend-mode: screen; }
+        .card-face.legendary { border-color: gold; box-shadow: 0 0 40px rgba(255, 215, 0, 0.5); }
+        .img-container { position: absolute; inset: 0; z-index: 1; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; }
-        .card-face.legendary { border-color: gold; box-shadow: 0 0 40px rgba(255,215,0,0.5); }
-        .close-btn { position: absolute; top: 25px; right: 25px; font-size: 3rem; color: white; z-index: 20001; }
 
-        #pack-selection { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 17000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        .pack-item-btn { width: 220px; padding: 20px; margin: 10px; background: #111; border: 2px solid white; border-radius: 15px; cursor: pointer; text-align: center; }
-        #pack-opener-area { position: fixed; bottom: 30px; width: 100%; display: flex; justify-content: center; z-index: 5000; }
-        #open-pack-btn { background: white; color: black; border: none; padding: 18px 50px; border-radius: 50px; font-weight: bold; }
+        #pack-selection { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .pack-item-btn { width: 220px; padding: 20px; margin: 10px; background: #111; border: 2px solid white; border-radius: 15px; cursor: pointer; text-align: center; font-weight: bold; }
+        #pack-opener-area { position: fixed; bottom: 30px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 5000; }
+        #open-pack-btn { background: white; color: black; border: none; padding: 15px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; }
+        #open-pack-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+        #rarity-menu { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 15000; display: none; justify-content: center; align-items: center; flex-direction: column; }
+        .choice-card { width: 240px; padding: 20px; margin: 10px; border-radius: 15px; text-align: center; border: 2px solid #222; cursor: pointer; }
+        .choice-card.locked { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; }
+        .close-btn { position: absolute; top: 20px; right: 20px; font-size: 3rem; color: white; cursor: pointer; z-index: 8005; }
+        #energy-display { color: var(--primary); font-size: 0.8rem; margin-top: 10px; font-weight: bold; }
+
+        #stats-btn { position: absolute; top: 20px; left: 20px; background: #111; color: var(--primary); border: 1px solid var(--primary); padding: 10px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; cursor: pointer; z-index: 10006; display: none; }
+        #stats-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 25000; display: none; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
+<audio id="snd-rip" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
 
-<button id="auth-trigger-btn" onclick="toggleAuthModal()">🔑 CONNEXION</button>
-
-<div id="auth-modal">
-    <div class="modal-content">
-        <h2 id="auth-title">Connexion</h2>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="pass" placeholder="Mot de passe">
-        <button class="btn-main" onclick="handleAuth()">VALIDER</button>
-        <p onclick="switchAuthMode()" style="font-size:0.75rem; margin-top:15px; cursor:pointer;">Pas de compte ? S'inscrire</p>
-        <button onclick="toggleAuthModal()" style="background:none; color:gray; border:none; margin-top:10px;">Fermer</button>
-    </div>
-</div>
+<button id="stats-btn" onclick="openStats()">📊 STATS</button>
 
 <div id="intro-screen">
+    <button id="auth-trigger-btn" onclick="toggleAuthModal()">🔑 CONNEXION / INSCRIPTION</button>
     <button id="start-btn" onclick="openDex()">DÉMARRER</button>
     <div class="door door-top"></div>
     <div class="door door-bottom"></div>
+</div>
+
+<div id="auth-modal">
+    <div class="modal-content">
+        <h2 id="auth-title" style="color:var(--primary)">Connexion</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="pass" placeholder="Mot de passe (6+ car.)">
+        <button style="width:100%; padding:12px; background:var(--primary); border:none; border-radius:10px; font-weight:bold; cursor:pointer;" onclick="window.handleAuth()">VALIDER</button>
+        <p onclick="isSignup=!isSignup; document.getElementById('auth-title').innerText=isSignup?'Inscription':'Connexion'" style="font-size:0.7rem; margin-top:15px; cursor:pointer; color:gray; text-decoration: underline;">Changer Mode (Inscrip/Connexion)</p>
+        <button onclick="document.getElementById('auth-modal').style.display='none'" style="background:none; border:none; color:gray; margin-top:10px; cursor:pointer;">Fermer</button>
+    </div>
+</div>
+
+<div id="stats-modal">
+    <div class="modal-content">
+        <h2 style="color:var(--primary)">STATISTIQUES</h2>
+        <div id="stats-content" style="text-align: left; font-size: 0.9rem; line-height: 1.6;"></div>
+        <button onclick="document.getElementById('stats-modal').style.display='none'" style="background:none; border:none; color:var(--primary); margin-top:20px; cursor:pointer; font-weight:bold;">RETOUR</button>
+    </div>
+</div>
+
+<div id="main-site">
+    <h2 style="text-align:center; letter-spacing: 5px; color:#222; margin-top: 40px;">SLIBARD-DEX</h2>
+    <div class="pokedex-grid" id="grid"></div>
 </div>
 
 <div id="pack-selection">
     <h2>CHOISIR UN PACK</h2>
     <div class="pack-item-btn" onclick="preparePack('💧')">💧 PACK AQUA</div>
     <div class="pack-item-btn" style="border-color: gold;" onclick="preparePack('👑')">👑 PACK ELITE</div>
-    <button onclick="document.getElementById('pack-selection').style.display='none'" style="margin-top:20px; background:none; border:none; color:gray;">Annuler</button>
+    <button onclick="document.getElementById('pack-selection').style.display='none'" style="background:none; border:none; color:white; margin-top:20px; cursor:pointer;">RETOUR</button>
 </div>
 
 <div id="booster-anim">
@@ -150,12 +169,7 @@
     <h2 id="menu-name">NOM</h2>
     <div id="choice-standard" class="choice-card"><h4>STANDARD</h4><span id="status-s">LOCKED</span></div>
     <div id="choice-legendary" class="choice-card"><h4>LÉGENDAIRE</h4><span id="status-l">LOCKED</span></div>
-    <button onclick="document.getElementById('rarity-menu').style.display='none'" style="margin-top:30px; background:none; border:1px solid #333; color:gray; padding:10px 20px; border-radius:10px;">RETOUR</button>
-</div>
-
-<div id="main-site">
-    <h2 style="text-align:center; letter-spacing: 10px; color:#222;">SLIBARD-DEX</h2>
-    <div class="pokedex-grid" id="grid"></div>
+    <button onclick="document.getElementById('rarity-menu').style.display='none'" style="margin-top:30px; background:none; border:1px solid #444; color:gray; padding:10px 25px; border-radius:10px; cursor:pointer;">RETOUR</button>
 </div>
 
 <div id="focus-overlay">
@@ -168,57 +182,112 @@
 
 <div id="pack-opener-area">
     <button id="open-pack-btn" onclick="document.getElementById('pack-selection').style.display='flex'">OBTENIR DES CARTES</button>
+    <div id="energy-display">CHARGES : <span id="charge-count">3</span>/3 <span id="timer-display" style="font-weight:normal; opacity:0.6; font-size:0.7rem"></span></div>
 </div>
 
 <script>
     let userInventory = {}; 
+    let doublonsCount = 0;
     let isSignup = false;
-    let currentPackType = '💧';
+    let currentPackIcon = '💧';
+    let charges = 3;
+    let lastRecharge = Date.now();
+    const COOLDOWN = 3600000; 
+
+    function updateEnergySystem() {
+        const now = Date.now();
+        const diff = now - lastRecharge;
+        if (charges < 3 && diff >= COOLDOWN) {
+            const extra = Math.floor(diff / COOLDOWN);
+            charges = Math.min(3, charges + extra);
+            lastRecharge = now;
+            saveData();
+        }
+        document.getElementById('charge-count').innerText = charges;
+        document.getElementById('open-pack-btn').disabled = charges <= 0;
+        if (charges < 3) {
+            const remaining = COOLDOWN - (now - lastRecharge);
+            const mins = Math.floor(remaining / 60000);
+            const secs = Math.floor((remaining % 60000) / 1000);
+            document.getElementById('timer-display').innerText = `(+1 dans ${mins}m ${secs}s)`;
+        } else { document.getElementById('timer-display').innerText = ""; }
+    }
+    setInterval(updateEnergySystem, 1000);
 
     const members = [
-        { id: 'malo', name: 'Malo', icon: '💧', color: '#00d2ff', desc: 'Maître des flux.' },
-        { id: 'lilian', name: 'Lilian', icon: '👁️', color: '#bd00ff', desc: 'L\'Observateur.' },
-        { id: 'charli', name: 'Charli', icon: '🍕', color: '#ffcc00', desc: 'Le Gourmet.' },
-        { id: 'arthur', name: 'Arthur', icon: '⛩️', color: '#ff3e3e', desc: 'Le Shogun.' },
-        { id: 'danny', name: 'Danny', icon: '🎮', color: '#39ff14', desc: 'Le Gamer.' }
+        { id: 'malo', name: 'malo', icon: '💧', color: '#00d2ff', desc: 'Maître des flux.' },
+        { id: 'lilian', name: 'lilian', icon: '👁️', color: '#bd00ff', desc: 'L\'Observateur.' },
+        { id: 'charli', name: 'charli', icon: '🍕', color: '#ffcc00', desc: 'Le Gourmet.' },
+        { id: 'arthur', name: 'arthur', icon: '⛩️', color: '#ff3e3e', desc: 'Le Shogun.' },
+        { id: 'danny', name: 'danny', icon: '🎮', color: '#39ff14', desc: 'Le Gamer.' }
     ];
 
-    // --- AUTH & CLOUD ---
     function toggleAuthModal() {
-        const modal = document.getElementById('auth-modal');
-        if(window.auth.currentUser) { if(confirm("Déconnexion ?")) window.logout(window.auth); } 
-        else { modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex'; }
+        if(window.auth.currentUser) { if(confirm("Déconnexion ?")) window.auth.signOut(); }
+        else { document.getElementById('auth-modal').style.display = 'flex'; }
     }
 
-    function switchAuthMode() { isSignup = !isSignup; document.getElementById('auth-title').innerText = isSignup ? "Inscription" : "Connexion"; }
-
-    async function handleAuth() {
-        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-        try {
-            if(isSignup) await window.createUser(window.auth, e, p);
-            else await window.signIn(window.auth, e, p);
-            document.getElementById('auth-modal').style.display = 'none';
-        } catch(err) { alert(err.message); }
+    function openDex() {
+        document.getElementById('auth-trigger-btn').style.display = 'none';
+        document.getElementById('start-btn').style.display = 'none';
+        document.getElementById('stats-btn').style.display = 'block';
+        document.getElementById('intro-screen').classList.add('opened');
+        setTimeout(() => { document.getElementById('intro-screen').style.display = 'none'; }, 800);
+        updateGrid();
     }
 
-    async function saveCard(cardId, rarity) {
-        if(!window.auth.currentUser) return;
-        userInventory[cardId] = userInventory[cardId] || { standard: false, legendary: false };
-        userInventory[cardId][rarity] = true;
-        await window.dbSet(window.dbDoc(window.db, "users", window.auth.currentUser.uid), { inventory: userInventory });
-    }
-
-    function loadUserCollection(uid) {
-        onSnapshot(window.dbDoc(window.db, "users", uid), (doc) => {
-            if(doc.exists()) userInventory = doc.data().inventory || {};
-            updateGrid();
+    function updateGrid() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        members.forEach(m => {
+            const hasAny = userInventory[m.id] && (userInventory[m.id].standard || userInventory[m.id].legendary);
+            const div = document.createElement('div');
+            div.className = 'card-thumb';
+            div.style.borderColor = hasAny ? m.color : '#222';
+            div.innerHTML = `${!hasAny ? '<span class="lock-icon">🔒</span>' : ''}<div style="font-size:2.5rem">${m.icon}</div><div style="font-weight:bold; margin-top:10px; color:${m.color}">${m.name.toUpperCase()}</div>`;
+            div.onclick = () => openRarityMenu(m);
+            grid.appendChild(div);
         });
     }
 
-    // --- LOGIQUE PACKS ---
+    function openStats() {
+        let ownedCount = 0;
+        members.forEach(m => {
+            if(userInventory[m.id]?.standard) ownedCount++;
+            if(userInventory[m.id]?.legendary) ownedCount++;
+        });
+        const total = members.length * 2;
+        const percent = Math.round((ownedCount / total) * 100);
+        document.getElementById('stats-content').innerHTML = `
+            <b>Progression :</b> ${percent}% (${ownedCount}/${total})<br>
+            <b>Doublons :</b> ${doublonsCount}/5<br>
+            <b>Taux Drop Légendaire :</b> 5%<br>
+            <b>Succès :</b> ${percent == 100 ? '🏆 Maître Slibard' : 'En cours...'}
+        `;
+        document.getElementById('stats-modal').style.display = 'flex';
+    }
+
+    function openRarityMenu(m) {
+        const menu = document.getElementById('rarity-menu');
+        const inv = userInventory[m.id] || { standard: false, legendary: false };
+        document.getElementById('menu-name').innerText = m.name.toUpperCase();
+        document.getElementById('menu-name').style.color = m.color;
+        menu.style.display = 'flex';
+        const sBtn = document.getElementById('choice-standard');
+        sBtn.className = `choice-card ${inv.standard ? '' : 'locked'}`;
+        sBtn.style.borderColor = inv.standard ? m.color : '#222';
+        document.getElementById('status-s').innerText = inv.standard ? "POSSÉDÉE" : "LOCKED";
+        sBtn.onclick = inv.standard ? () => { openCard(m, false, false); menu.style.display='none'; } : null;
+        const lBtn = document.getElementById('choice-legendary');
+        lBtn.className = `choice-card ${inv.legendary ? '' : 'locked'}`;
+        lBtn.style.borderColor = inv.legendary ? 'gold' : '#222';
+        document.getElementById('status-l').innerText = inv.legendary ? "POSSÉDÉE" : "LOCKED";
+        lBtn.onclick = inv.legendary ? () => { openCard(m, false, true); menu.style.display='none'; } : null;
+    }
+
     function preparePack(icon) {
-        if(!window.auth.currentUser) return alert("Connecte-toi d'abord !");
-        currentPackType = icon;
+        if(!window.auth.currentUser) return alert("Connecte-toi !");
+        if(charges <= 0) return alert("Plus de charges !");
         document.getElementById('pack-selection').style.display = 'none';
         document.getElementById('booster-anim').style.display = 'flex';
         document.getElementById('half-t').innerText = icon;
@@ -228,48 +297,64 @@
     function triggerRip() {
         const pack = document.getElementById('pack-wrap');
         if (pack.classList.contains('ripping')) return;
+        if(navigator.vibrate) navigator.vibrate(50);
+        charges--;
+        updateEnergySystem();
+        document.getElementById('snd-rip').play();
         pack.classList.add('ripping');
-        setTimeout(async () => {
+        const member = members[Math.floor(Math.random()*members.length)];
+        const isLeg = Math.random() < 0.05;
+        const rarity = isLeg ? 'legendary' : 'standard';
+        if(userInventory[member.id] && userInventory[member.id][rarity]) {
+            doublonsCount++;
+            if(doublonsCount >= 5) {
+                doublonsCount = 0; charges = Math.min(3, charges + 1);
+                alert("✨ 5 DOUBLONS ! Vous gagnez +1 CHARGE !");
+            }
+        } else {
+            userInventory[member.id] = { ...(userInventory[member.id] || {}), [rarity]: true };
+        }
+        saveData();
+        setTimeout(() => {
             document.getElementById('booster-anim').style.display = 'none';
             pack.classList.remove('ripping');
-            const member = members[Math.floor(Math.random()*members.length)];
-            const isLeg = (currentPackType === '👑') ? Math.random() < 0.25 : Math.random() < 0.08;
-            const rarity = isLeg ? 'legendary' : 'standard';
-            await saveCard(member.id, rarity);
             openCard(member, true, isLeg);
         }, 800);
     }
 
-    // --- CARTE 3D INTERACTIVE ---
+    async function saveData() {
+        if(!window.auth.currentUser) return;
+        await window.dbSet(window.dbDoc(window.db, "users", window.auth.currentUser.uid), { 
+            inventory: userInventory, doublons: doublonsCount, charges: charges, lastRecharge: lastRecharge
+        }, { merge: true });
+    }
+
     let isDragging = false, startX, startY, curRotY = 0, curRotX = 0;
-
     function openCard(m, isPop, isLegendary) {
-        document.getElementById('focus-overlay').style.display = 'flex';
-        curRotY = 0; curRotX = 0;
-        updateCardTransform();
-
+        const overlay = document.getElementById('focus-overlay');
+        const card = document.getElementById('card-3d');
+        overlay.style.display = 'flex';
+        curRotY = 0; curRotX = 0; updateCardTransform();
+        if(isPop) { card.classList.add('reveal-pop'); setTimeout(() => card.classList.remove('reveal-pop'), 800); }
         const rarityClass = isLegendary ? 'legendary' : 'common';
-        const front = document.getElementById('front-content');
-        front.className = `card-face card-front ${rarityClass}`;
-        front.innerHTML = `
+        document.getElementById('front-content').className = `card-face card-front ${rarityClass}`;
+        document.getElementById('front-content').innerHTML = `
             <div class="specular-shine" id="shine-f"></div>
-            <div class="img-container"><img src="${m.id}_face.png"></div>
-            <div style="position:absolute; bottom:25px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:15px; border-left:5px solid ${isLegendary ? 'gold' : m.color}; z-index:10; backdrop-filter:blur(5px);">
-                <div style="font-size:0.6rem; color:gold; font-weight:bold;">${isLegendary ? '✦ LÉGENDAIRE' : '• STANDARD'}</div>
-                <h3 style="margin:0;">${m.name.toUpperCase()}</h3>
-                <p style="margin:5px 0 0; font-size:0.8rem; opacity:0.7;">${m.desc}</p>
+            <div class="img-container"><img src="${m.name}_face.png"></div>
+            <div style="position:absolute; bottom:20px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; border-left:5px solid ${isLegendary ? 'gold' : m.color}; z-index:10; backdrop-filter:blur(5px);">
+                <div style="font-size:0.6rem; color:gold; margin-bottom:2px; font-weight:bold;">${isLegendary ? '✦ LÉGENDAIRE' : '• STANDARD'}</div>
+                <h3 style="margin:0; color:${isLegendary ? 'gold' : 'white'};">${m.name.toUpperCase()}</h3>
+                <p style="margin:5px 0 0; font-size:0.85rem; opacity:0.8;">${m.desc}</p>
             </div>`;
-
-        const back = document.getElementById('back-content');
-        back.className = `card-face card-back ${rarityClass}`;
-        back.innerHTML = `<div class="specular-shine" id="shine-b"></div><div class="img-container"><img src="${m.id}_dos.png"></div>`;
+        document.getElementById('back-content').className = `card-face card-back ${rarityClass}`;
+        document.getElementById('back-content').innerHTML = `<div class="specular-shine" id="shine-b"></div><div class="img-container"><img src="${m.name}_dos.png"></div>`;
     }
 
     function updateCardTransform() {
         const card = document.getElementById('card-3d');
+        if(!card) return;
         card.style.transform = `rotateY(${curRotY}deg) rotateX(${curRotX}deg)`;
-        const moveX = (curRotY % 360) * 2;
-        const moveY = curRotX * 2;
+        const moveX = (curRotY % 360) * 3; const moveY = curRotX * 3;
         const sf = document.getElementById('shine-f'), sb = document.getElementById('shine-b');
         if(sf) sf.style.transform = `translate(${moveX}px, ${moveY}px)`;
         if(sb) sb.style.transform = `translate(${-moveX}px, ${moveY}px)`;
@@ -279,59 +364,37 @@
     const moveAction = (e) => {
         if (!isDragging) return;
         const x = (e.pageX || e.touches[0].pageX), y = (e.pageY || e.touches[0].pageY);
-        curRotY += (x - startX) * 0.6;
-        curRotX = Math.max(-50, Math.min(50, curRotX - (y - startY) * 0.6));
-        startX = x; startY = y;
-        updateCardTransform();
+        curRotY += (x - startX) * 0.7; curRotX = Math.max(-60, Math.min(60, curRotX - (y - startY) * 0.7));
+        startX = x; startY = y; updateCardTransform();
     };
-
     const overlay = document.getElementById('focus-overlay');
     overlay.addEventListener('mousedown', startAction); overlay.addEventListener('touchstart', startAction);
     window.addEventListener('mousemove', moveAction); window.addEventListener('touchmove', moveAction);
     window.addEventListener('mouseup', () => isDragging = false); window.addEventListener('touchend', () => isDragging = false);
-
-    // --- DEX UI ---
-    function openDex() { 
-        document.getElementById('start-btn').style.display = 'none';
-        document.getElementById('intro-screen').classList.add('opened'); 
-        setTimeout(() => document.getElementById('intro-screen').style.display = 'none', 1000);
-        updateGrid();
-    }
-
-    function updateGrid() {
-        const grid = document.getElementById('grid'); grid.innerHTML = '';
-        members.forEach(m => {
-            const hasAny = userInventory[m.id] && (userInventory[m.id].standard || userInventory[m.id].legendary);
-            const div = document.createElement('div');
-            div.className = 'card-thumb';
-            div.style.borderColor = hasAny ? m.color : '#222';
-            div.innerHTML = `${!hasAny ? '<span class="lock-icon">🔒</span>' : ''}<div style="font-size:3rem; margin-bottom:10px;">${m.icon}</div><div style="font-weight:bold; color:${m.color};">${m.name.toUpperCase()}</div>`;
-            div.onclick = () => openRarityMenu(m);
-            grid.appendChild(div);
-        });
-    }
-
-    function openRarityMenu(m) {
-        const menu = document.getElementById('rarity-menu'), inv = userInventory[m.id] || { standard: false, legendary: false };
-        document.getElementById('menu-name').innerText = m.name.toUpperCase();
-        document.getElementById('menu-name').style.color = m.color;
-        menu.style.display = 'flex';
-        const sBtn = document.getElementById('choice-standard'), sStat = document.getElementById('status-s');
-        sBtn.className = `choice-card ${inv.standard ? 'owned' : 'locked'}`;
-        sBtn.style.borderColor = inv.standard ? m.color : '#222';
-        sStat.innerText = inv.standard ? "POSSÉDÉE" : "LOCKED";
-        sBtn.onclick = inv.standard ? () => { openCard(m, false, false); menu.style.display='none'; } : null;
-        const lBtn = document.getElementById('choice-legendary'), lStat = document.getElementById('status-l');
-        lBtn.className = `choice-card ${inv.legendary ? 'owned' : 'locked'}`;
-        lBtn.style.borderColor = inv.legendary ? 'gold' : '#222';
-        lStat.innerText = inv.legendary ? "POSSÉDÉE" : "LOCKED";
-        lBtn.onclick = inv.legendary ? () => { openCard(m, false, true); menu.style.display='none'; } : null;
-    }
-
     function closeCard() { document.getElementById('focus-overlay').style.display = 'none'; }
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+       
+
+
 
 
 
