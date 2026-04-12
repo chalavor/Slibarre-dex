@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SLIBARD-DEX | CLOUD EDITION</title>
+    <title>SLIBARD-DEX | ULTRA CLOUD</title>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -47,25 +47,11 @@
         body, html { margin: 0; padding: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; }
 
         /* --- UI COMPTE --- */
-        #auth-trigger-btn { position: fixed; top: 15px; right: 15px; z-index: 10002; background: rgba(0,0,0,0.8); color: white; border: 2px solid var(--primary); padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 0.7rem; cursor: pointer; backdrop-filter: blur(5px); transition: 0.3s; }
-        
-        #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
+        #auth-trigger-btn { position: fixed; top: 15px; right: 15px; z-index: 10002; background: rgba(0,0,0,0.8); color: white; border: 2px solid var(--primary); padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 0.7rem; cursor: pointer; backdrop-filter: blur(5px); }
+        #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: none; justify-content: center; align-items: center; }
         .modal-content { background: #111; padding: 30px; border-radius: 25px; border: 1px solid #333; width: 85%; max-width: 320px; text-align: center; }
-        .modal-content input { width: 100%; padding: 14px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 12px; box-sizing: border-box; outline: none; }
-        .btn-main { width: 100%; padding: 14px; background: var(--primary); border: none; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; color: black; }
-
-        /* --- MENU CHOIX RARETÉ --- */
-        #rarity-menu { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 15000; display: none; justify-content: center; align-items: center; flex-direction: column; }
-        .choice-card { width: 240px; padding: 25px; margin: 12px; border-radius: 20px; text-align: center; cursor: pointer; border: 2px solid #222; background: #111; transition: 0.3s; }
-        .choice-card.locked { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; border-style: dashed; }
-        .choice-card h4 { margin: 0; font-size: 1.2rem; letter-spacing: 2px; }
-        .choice-card span { font-size: 0.7rem; opacity: 0.6; }
-
-        /* --- GRILLE --- */
-        #main-site { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; padding-top: 70px; }
-        .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 18px; padding-bottom: 120px; }
-        .card-thumb { background: #161616; border-radius: 20px; padding: 25px 15px; text-align: center; border: 1px solid #222; position: relative; transition: 0.3s; }
-        .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 0.8rem; opacity: 0.5; }
+        .modal-content input { width: 100%; padding: 14px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 12px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 14px; background: var(--primary); border: none; border-radius: 12px; font-weight: bold; cursor: pointer; color: black; }
 
         /* --- INTRO --- */
         #intro-screen { position: fixed; inset: 0; z-index: 10000; display: flex; flex-direction: column; }
@@ -76,9 +62,20 @@
         .opened .door-bottom { transform: translateY(101%); }
         #start-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 45px; background: #000; border: 2px solid var(--primary); color: white; font-weight: bold; z-index: 10001; letter-spacing: 8px; }
 
-        /* --- ANIM BOOSTER --- */
+        /* --- GRILLE --- */
+        #main-site { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; padding-top: 70px; }
+        .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 18px; padding-bottom: 120px; }
+        .card-thumb { background: #161616; border-radius: 20px; padding: 25px 15px; text-align: center; border: 1px solid #222; position: relative; transition: 0.3s; cursor: pointer; }
+        .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 0.8rem; opacity: 0.5; }
+
+        /* --- RARITY MENU --- */
+        #rarity-menu { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 15000; display: none; justify-content: center; align-items: center; flex-direction: column; }
+        .choice-card { width: 240px; padding: 25px; margin: 12px; border-radius: 20px; text-align: center; cursor: pointer; border: 2px solid #222; background: #111; transition: 0.3s; }
+        .choice-card.locked { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; border-style: dashed; }
+
+        /* --- BOOSTER ANIM --- */
         #booster-anim { position: fixed; inset: 0; z-index: 18000; display: none; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; flex-direction: column; }
-        .pack-wrapper { width: 260px; height: 400px; position: relative; perspective: 1000px; }
+        .pack-wrapper { width: 260px; height: 420px; position: relative; perspective: 1000px; }
         .pack-half { position: absolute; width: 100%; height: 50%; background: #1a1a1a; border: 3px solid #333; display: flex; justify-content: center; align-items: center; font-size: 5rem; z-index: 2; }
         .p-top { top: 0; border-radius: 20px 20px 0 0; }
         .p-bottom { bottom: 0; border-radius: 0 0 20px 20px; }
@@ -87,19 +84,31 @@
         @keyframes ripTop { 100% { transform: translateY(-160%) rotateX(-60deg); opacity: 0; } }
         @keyframes ripBottom { 100% { transform: translateY(160%) rotateX(60deg); opacity: 0; } }
 
-        /* --- CARTE 3D --- */
+        /* --- FOCUS CARTE 3D (ULTRA GLOW) --- */
         #focus-overlay { position: fixed; inset: 0; background: radial-gradient(circle at center, #1a1a1a, #000); display: none; justify-content: center; align-items: center; z-index: 20000; perspective: 1500px; touch-action: none; }
-        .card-3d-wrapper { width: 300px; height: 430px; position: relative; transform-style: preserve-3d; }
+        .card-3d-wrapper { width: 300px; height: 430px; position: relative; transform-style: preserve-3d; transition: transform 0.1s ease-out; }
         .card-face { position: absolute; inset: 0; border-radius: 20px; border: 5px solid white; overflow: hidden; background: #000; backface-visibility: hidden; }
         .card-back { transform: rotateY(180deg); }
-        .specular-shine { position: absolute; inset: -150%; z-index: 4; pointer-events: none; background: linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%); mix-blend-mode: color-dodge; }
-        .legendary .specular-shine { background: linear-gradient(110deg, transparent 30%, rgba(255,215,0,0.4) 45%, rgba(255,0,255,0.4) 50%, rgba(0,255,255,0.4) 55%, transparent 70%); mix-blend-mode: screen; }
+        
+        .specular-shine { 
+            position: absolute; inset: -150%; z-index: 4; pointer-events: none; 
+            background: linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.2) 55%, transparent 60%); 
+            mix-blend-mode: color-dodge; transition: transform 0.1s ease-out;
+        }
+        .legendary .specular-shine {
+            background: linear-gradient(110deg, transparent 30%, rgba(255, 215, 0, 0.4) 40%, rgba(255, 0, 255, 0.6) 50%, rgba(0, 255, 255, 0.4) 60%, transparent 70%);
+            mix-blend-mode: screen;
+        }
+
+        .img-container { position: absolute; inset: 0; }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; }
         .card-face.legendary { border-color: gold; box-shadow: 0 0 40px rgba(255,215,0,0.5); }
-        .img-container { position: absolute; inset: 0; } .img-container img { width: 100%; height: 100%; object-fit: cover; }
         .close-btn { position: absolute; top: 25px; right: 25px; font-size: 3rem; color: white; z-index: 20001; }
 
+        #pack-selection { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 17000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .pack-item-btn { width: 220px; padding: 20px; margin: 10px; background: #111; border: 2px solid white; border-radius: 15px; cursor: pointer; text-align: center; }
         #pack-opener-area { position: fixed; bottom: 30px; width: 100%; display: flex; justify-content: center; z-index: 5000; }
-        #open-pack-btn { background: white; color: black; border: none; padding: 18px 50px; border-radius: 50px; font-weight: bold; font-size: 1rem; }
+        #open-pack-btn { background: white; color: black; border: none; padding: 18px 50px; border-radius: 50px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -108,26 +117,13 @@
 
 <div id="auth-modal">
     <div class="modal-content">
-        <h2 id="auth-title" style="color:var(--primary)">Connexion</h2>
+        <h2 id="auth-title">Connexion</h2>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Mot de passe">
         <button class="btn-main" onclick="handleAuth()">VALIDER</button>
-        <p onclick="switchAuthMode()" style="font-size:0.75rem; margin-top:20px; color:gray; cursor:pointer;">Pas de compte ? <span style="color:white; text-decoration:underline;">S'inscrire</span></p>
-        <button onclick="toggleAuthModal()" style="background:none; color:#444; border:none; margin-top:15px;">Fermer</button>
+        <p onclick="switchAuthMode()" style="font-size:0.75rem; margin-top:15px; cursor:pointer;">Pas de compte ? S'inscrire</p>
+        <button onclick="toggleAuthModal()" style="background:none; color:gray; border:none; margin-top:10px;">Fermer</button>
     </div>
-</div>
-
-<div id="rarity-menu">
-    <h2 id="menu-name" style="margin-bottom:30px; font-size:2rem; letter-spacing:5px;">NOM</h2>
-    <div id="choice-standard" class="choice-card">
-        <h4>STANDARD</h4>
-        <span id="status-s">LOCKED</span>
-    </div>
-    <div id="choice-legendary" class="choice-card">
-        <h4 style="color:gold;">LÉGENDAIRE</h4>
-        <span id="status-l">LOCKED</span>
-    </div>
-    <button onclick="document.getElementById('rarity-menu').style.display='none'" style="margin-top:40px; background:none; border:1px solid #333; color:gray; padding:12px 30px; border-radius:15px;">RETOUR</button>
 </div>
 
 <div id="intro-screen">
@@ -136,9 +132,11 @@
     <div class="door door-bottom"></div>
 </div>
 
-<div id="main-site">
-    <h2 style="text-align:center; letter-spacing: 10px; color:#222; margin-bottom:30px;">SLIBARD-DEX</h2>
-    <div class="pokedex-grid" id="grid"></div>
+<div id="pack-selection">
+    <h2>CHOISIR UN PACK</h2>
+    <div class="pack-item-btn" onclick="preparePack('💧')">💧 PACK AQUA</div>
+    <div class="pack-item-btn" style="border-color: gold;" onclick="preparePack('👑')">👑 PACK ELITE</div>
+    <button onclick="document.getElementById('pack-selection').style.display='none'" style="margin-top:20px; background:none; border:none; color:gray;">Annuler</button>
 </div>
 
 <div id="booster-anim">
@@ -146,6 +144,18 @@
         <div class="pack-half p-top" id="half-t"></div>
         <div class="pack-half p-bottom" id="half-b"></div>
     </div>
+</div>
+
+<div id="rarity-menu">
+    <h2 id="menu-name">NOM</h2>
+    <div id="choice-standard" class="choice-card"><h4>STANDARD</h4><span id="status-s">LOCKED</span></div>
+    <div id="choice-legendary" class="choice-card"><h4>LÉGENDAIRE</h4><span id="status-l">LOCKED</span></div>
+    <button onclick="document.getElementById('rarity-menu').style.display='none'" style="margin-top:30px; background:none; border:1px solid #333; color:gray; padding:10px 20px; border-radius:10px;">RETOUR</button>
+</div>
+
+<div id="main-site">
+    <h2 style="text-align:center; letter-spacing: 10px; color:#222;">SLIBARD-DEX</h2>
+    <div class="pokedex-grid" id="grid"></div>
 </div>
 
 <div id="focus-overlay">
@@ -157,12 +167,13 @@
 </div>
 
 <div id="pack-opener-area">
-    <button id="open-pack-btn" onclick="startPackAnim()">OBTENIR DES CARTES</button>
+    <button id="open-pack-btn" onclick="document.getElementById('pack-selection').style.display='flex'">OBTENIR DES CARTES</button>
 </div>
 
 <script>
     let userInventory = {}; 
     let isSignup = false;
+    let currentPackType = '💧';
 
     const members = [
         { id: 'malo', name: 'Malo', icon: '💧', color: '#00d2ff', desc: 'Maître des flux.' },
@@ -172,24 +183,17 @@
         { id: 'danny', name: 'Danny', icon: '🎮', color: '#39ff14', desc: 'Le Gamer.' }
     ];
 
-    // --- FIREBASE LOGIC ---
+    // --- AUTH & CLOUD ---
     function toggleAuthModal() {
         const modal = document.getElementById('auth-modal');
-        if(window.auth.currentUser) {
-            if(confirm("Se déconnecter ?")) window.logout(window.auth);
-        } else {
-            modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
-        }
+        if(window.auth.currentUser) { if(confirm("Déconnexion ?")) window.logout(window.auth); } 
+        else { modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex'; }
     }
 
-    function switchAuthMode() {
-        isSignup = !isSignup;
-        document.getElementById('auth-title').innerText = isSignup ? "Inscription" : "Connexion";
-    }
+    function switchAuthMode() { isSignup = !isSignup; document.getElementById('auth-title').innerText = isSignup ? "Inscription" : "Connexion"; }
 
     async function handleAuth() {
-        const e = document.getElementById('email').value;
-        const p = document.getElementById('pass').value;
+        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
         try {
             if(isSignup) await window.createUser(window.auth, e, p);
             else await window.signIn(window.auth, e, p);
@@ -199,10 +203,9 @@
 
     async function saveCard(cardId, rarity) {
         if(!window.auth.currentUser) return;
-        const uid = window.auth.currentUser.uid;
         userInventory[cardId] = userInventory[cardId] || { standard: false, legendary: false };
         userInventory[cardId][rarity] = true;
-        await window.dbSet(window.dbDoc(window.db, "users", uid), { inventory: userInventory });
+        await window.dbSet(window.dbDoc(window.db, "users", window.auth.currentUser.uid), { inventory: userInventory });
     }
 
     function loadUserCollection(uid) {
@@ -212,62 +215,14 @@
         });
     }
 
-    // --- UI GRID ---
-    function updateGrid() {
-        const grid = document.getElementById('grid');
-        grid.innerHTML = '';
-        members.forEach(m => {
-            const hasAny = userInventory[m.id] && (userInventory[m.id].standard || userInventory[m.id].legendary);
-            const div = document.createElement('div');
-            div.className = `card-thumb`;
-            div.style.borderColor = hasAny ? m.color : '#222';
-            div.innerHTML = `
-                ${!hasAny ? '<span class="lock-icon">🔒</span>' : ''}
-                <div style="font-size:3rem; margin-bottom:10px;">${m.icon}</div>
-                <div style="font-weight:bold; color:${m.color}; letter-spacing:2px;">${m.name.toUpperCase()}</div>
-            `;
-            div.onclick = () => openRarityMenu(m);
-            grid.appendChild(div);
-        });
-    }
-
-    function openRarityMenu(m) {
-        const menu = document.getElementById('rarity-menu');
-        const inv = userInventory[m.id] || { standard: false, legendary: false };
-        document.getElementById('menu-name').innerText = m.name.toUpperCase();
-        document.getElementById('menu-name').style.color = m.color;
-        menu.style.display = 'flex';
-
-        const sBtn = document.getElementById('choice-standard');
-        const sStat = document.getElementById('status-s');
-        sBtn.className = `choice-card ${inv.standard ? 'owned' : 'locked'}`;
-        sBtn.style.borderColor = inv.standard ? m.color : '#222';
-        sStat.innerText = inv.standard ? "DÉBLOQUÉE" : "LOCKED";
-        sBtn.onclick = inv.standard ? () => { openCard(m, false, false); menu.style.display='none'; } : null;
-
-        const lBtn = document.getElementById('choice-legendary');
-        const lStat = document.getElementById('status-l');
-        lBtn.className = `choice-card ${inv.legendary ? 'owned' : 'locked'}`;
-        lBtn.style.borderColor = inv.legendary ? 'gold' : '#222';
-        lStat.innerText = inv.legendary ? "DÉBLOQUÉE" : "LOCKED";
-        lBtn.onclick = inv.legendary ? () => { openCard(m, false, true); menu.style.display='none'; } : null;
-    }
-
-    // --- ANIMATIONS ---
-    function openDex() {
-        const intro = document.getElementById('intro-screen');
-        const btn = document.getElementById('start-btn');
-        btn.style.display = 'none'; // Disparition immédiate
-        intro.classList.add('opened');
-        setTimeout(() => { intro.style.display = 'none'; }, 1000);
-        updateGrid();
-    }
-
-    function startPackAnim() {
-        if(!window.auth.currentUser) return alert("Connecte-toi pour gagner des cartes !");
+    // --- LOGIQUE PACKS ---
+    function preparePack(icon) {
+        if(!window.auth.currentUser) return alert("Connecte-toi d'abord !");
+        currentPackType = icon;
+        document.getElementById('pack-selection').style.display = 'none';
         document.getElementById('booster-anim').style.display = 'flex';
-        document.getElementById('half-t').innerText = "✨";
-        document.getElementById('half-b').innerText = "✨";
+        document.getElementById('half-t').innerText = icon;
+        document.getElementById('half-b').innerText = icon;
     }
 
     function triggerRip() {
@@ -278,40 +233,106 @@
             document.getElementById('booster-anim').style.display = 'none';
             pack.classList.remove('ripping');
             const member = members[Math.floor(Math.random()*members.length)];
-            const isLeg = Math.random() < 0.2;
+            const isLeg = (currentPackType === '👑') ? Math.random() < 0.25 : Math.random() < 0.08;
             const rarity = isLeg ? 'legendary' : 'standard';
             await saveCard(member.id, rarity);
             openCard(member, true, isLeg);
         }, 800);
     }
 
+    // --- CARTE 3D INTERACTIVE ---
+    let isDragging = false, startX, startY, curRotY = 0, curRotX = 0;
+
     function openCard(m, isPop, isLegendary) {
         document.getElementById('focus-overlay').style.display = 'flex';
-        const card = document.getElementById('card-3d');
-        card.style.transform = `rotateY(0deg)`;
+        curRotY = 0; curRotX = 0;
+        updateCardTransform();
+
         const rarityClass = isLegendary ? 'legendary' : 'common';
-        document.getElementById('front-content').className = `card-face card-front ${rarityClass}`;
-        document.getElementById('front-content').innerHTML = `
+        const front = document.getElementById('front-content');
+        front.className = `card-face card-front ${rarityClass}`;
+        front.innerHTML = `
             <div class="specular-shine" id="shine-f"></div>
             <div class="img-container"><img src="${m.id}_face.png"></div>
-            <div style="position:absolute; bottom:25px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:15px; border-left:5px solid ${isLegendary ? 'gold' : m.color}; z-index:10;">
+            <div style="position:absolute; bottom:25px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:15px; border-left:5px solid ${isLegendary ? 'gold' : m.color}; z-index:10; backdrop-filter:blur(5px);">
                 <div style="font-size:0.6rem; color:gold; font-weight:bold;">${isLegendary ? '✦ LÉGENDAIRE' : '• STANDARD'}</div>
                 <h3 style="margin:0;">${m.name.toUpperCase()}</h3>
                 <p style="margin:5px 0 0; font-size:0.8rem; opacity:0.7;">${m.desc}</p>
             </div>`;
-        document.getElementById('back-content').innerHTML = `<div class="specular-shine" id="shine-b"></div><div class="img-container"><img src="${m.id}_dos.png"></div>`;
+
+        const back = document.getElementById('back-content');
+        back.className = `card-face card-back ${rarityClass}`;
+        back.innerHTML = `<div class="specular-shine" id="shine-b"></div><div class="img-container"><img src="${m.id}_dos.png"></div>`;
+    }
+
+    function updateCardTransform() {
+        const card = document.getElementById('card-3d');
+        card.style.transform = `rotateY(${curRotY}deg) rotateX(${curRotX}deg)`;
+        const moveX = (curRotY % 360) * 2;
+        const moveY = curRotX * 2;
+        const sf = document.getElementById('shine-f'), sb = document.getElementById('shine-b');
+        if(sf) sf.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        if(sb) sb.style.transform = `translate(${-moveX}px, ${moveY}px)`;
+    }
+
+    const startAction = (e) => { isDragging = true; startX = (e.pageX || e.touches[0].pageX); startY = (e.pageY || e.touches[0].pageY); };
+    const moveAction = (e) => {
+        if (!isDragging) return;
+        const x = (e.pageX || e.touches[0].pageX), y = (e.pageY || e.touches[0].pageY);
+        curRotY += (x - startX) * 0.6;
+        curRotX = Math.max(-50, Math.min(50, curRotX - (y - startY) * 0.6));
+        startX = x; startY = y;
+        updateCardTransform();
+    };
+
+    const overlay = document.getElementById('focus-overlay');
+    overlay.addEventListener('mousedown', startAction); overlay.addEventListener('touchstart', startAction);
+    window.addEventListener('mousemove', moveAction); window.addEventListener('touchmove', moveAction);
+    window.addEventListener('mouseup', () => isDragging = false); window.addEventListener('touchend', () => isDragging = false);
+
+    // --- DEX UI ---
+    function openDex() { 
+        document.getElementById('start-btn').style.display = 'none';
+        document.getElementById('intro-screen').classList.add('opened'); 
+        setTimeout(() => document.getElementById('intro-screen').style.display = 'none', 1000);
+        updateGrid();
+    }
+
+    function updateGrid() {
+        const grid = document.getElementById('grid'); grid.innerHTML = '';
+        members.forEach(m => {
+            const hasAny = userInventory[m.id] && (userInventory[m.id].standard || userInventory[m.id].legendary);
+            const div = document.createElement('div');
+            div.className = 'card-thumb';
+            div.style.borderColor = hasAny ? m.color : '#222';
+            div.innerHTML = `${!hasAny ? '<span class="lock-icon">🔒</span>' : ''}<div style="font-size:3rem; margin-bottom:10px;">${m.icon}</div><div style="font-weight:bold; color:${m.color};">${m.name.toUpperCase()}</div>`;
+            div.onclick = () => openRarityMenu(m);
+            grid.appendChild(div);
+        });
+    }
+
+    function openRarityMenu(m) {
+        const menu = document.getElementById('rarity-menu'), inv = userInventory[m.id] || { standard: false, legendary: false };
+        document.getElementById('menu-name').innerText = m.name.toUpperCase();
+        document.getElementById('menu-name').style.color = m.color;
+        menu.style.display = 'flex';
+        const sBtn = document.getElementById('choice-standard'), sStat = document.getElementById('status-s');
+        sBtn.className = `choice-card ${inv.standard ? 'owned' : 'locked'}`;
+        sBtn.style.borderColor = inv.standard ? m.color : '#222';
+        sStat.innerText = inv.standard ? "POSSÉDÉE" : "LOCKED";
+        sBtn.onclick = inv.standard ? () => { openCard(m, false, false); menu.style.display='none'; } : null;
+        const lBtn = document.getElementById('choice-legendary'), lStat = document.getElementById('status-l');
+        lBtn.className = `choice-card ${inv.legendary ? 'owned' : 'locked'}`;
+        lBtn.style.borderColor = inv.legendary ? 'gold' : '#222';
+        lStat.innerText = inv.legendary ? "POSSÉDÉE" : "LOCKED";
+        lBtn.onclick = inv.legendary ? () => { openCard(m, false, true); menu.style.display='none'; } : null;
     }
 
     function closeCard() { document.getElementById('focus-overlay').style.display = 'none'; }
-
-    let curRot = 0;
-    document.getElementById('focus-overlay').addEventListener('touchmove', (e) => {
-        curRot += (e.touches[0].clientX - (window.innerWidth/2)) * 0.04;
-        document.getElementById('card-3d').style.transform = `rotateY(${curRot}deg)`;
-    });
 </script>
 </body>
 </html>
+
 
 
 
