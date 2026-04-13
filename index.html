@@ -59,20 +59,12 @@
 
     <style>
         :root { --primary: #00d2ff; --bg: #000; }
-        
-        /* SUPPRESSION DU RECTANGLE BLEU AU CLIC */
-        * { 
-            -webkit-tap-highlight-color: transparent; 
-            outline: none; 
-        }
-
+        * { -webkit-tap-highlight-color: transparent; outline: none; }
         body, html { margin: 0; padding: 0; background: var(--bg); color: white; font-family: sans-serif; height: 100vh; overflow: hidden; }
-
         #auth-trigger-btn { position: absolute; top: 20px; width: 240px; left: 50%; transform: translateX(-50%); z-index: 10005; background: rgba(0,0,0,0.8); color: white; border: 2px solid var(--primary); padding: 12px; border-radius: 30px; font-weight: bold; font-size: 0.7rem; cursor: pointer; transition: border 0.3s; }
         #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 20000; display: none; justify-content: center; align-items: center; }
         .modal-content { background: #111; padding: 30px; border-radius: 25px; border: 1px solid #333; width: 280px; text-align: center; }
         .modal-content input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; }
-
         #intro-screen { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; }
         .door { height: 50%; background: #0d0d0d; transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1), border 0.3s; }
         .door-top { border-bottom: 2px solid var(--primary); }
@@ -80,12 +72,10 @@
         #start-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; background: #000; border: 2px solid var(--primary); color: white; font-weight: bold; z-index: 10000; letter-spacing: 5px; cursor: pointer; transition: border 0.3s; }
         .opened .door-top { transform: translateY(-101%); }
         .opened .door-bottom { transform: translateY(101%); }
-
         #main-site { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
         .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-bottom: 120px; margin-top: 60px;}
         .card-thumb { background: #111; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #333; position: relative; cursor: pointer; }
         .lock-icon { position: absolute; top: 5px; right: 8px; opacity: 0.4; font-size: 0.8rem; }
-
         #booster-anim { position: fixed; inset: 0; z-index: 9500; display: none; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; flex-direction: column; }
         .pack-wrapper { width: 260px; height: 420px; position: relative; perspective: 1000px; }
         .pack-half { position: absolute; width: 100%; height: 50%; background: #222; border: 3px solid #444; display: flex; justify-content: center; align-items: center; font-size: 5rem; }
@@ -95,7 +85,6 @@
         .ripping .p-bottom { animation: ripBottom 0.8s forwards; }
         @keyframes ripTop { 100% { transform: translateY(-150%) rotateX(-45deg); opacity: 0; } }
         @keyframes ripBottom { 100% { transform: translateY(150%) rotateX(45deg); opacity: 0; } }
-
         #focus-overlay { position: fixed; inset: 0; background: radial-gradient(circle at center, #1a1a1a, #000); display: none; justify-content: center; align-items: center; z-index: 8000; perspective: 1500px; touch-action: none; }
         .card-3d-wrapper { width: 300px; height: 440px; position: relative; transform-style: preserve-3d; transition: transform 0.1s ease-out; }
         .reveal-pop { animation: popOut 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -107,7 +96,6 @@
         .card-face.legendary { border-color: gold; box-shadow: 0 0 40px rgba(255, 215, 0, 0.5); }
         .img-container { position: absolute; inset: 0; z-index: 1; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; }
-
         #pack-selection { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9000; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .pack-item-btn { width: 220px; padding: 20px; margin: 10px; background: #111; border: 2px solid white; border-radius: 15px; cursor: pointer; text-align: center; font-weight: bold; }
         #pack-opener-area { position: fixed; bottom: 30px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 5000; }
@@ -118,26 +106,32 @@
         .choice-card.locked { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; }
         .close-btn { position: absolute; top: 20px; right: 20px; font-size: 3rem; color: white; cursor: pointer; z-index: 8005; }
         #energy-display { color: var(--primary); font-size: 0.8rem; margin-top: 10px; font-weight: bold; transition: color 0.3s; }
-
         #stats-btn { position: absolute; top: 20px; left: 20px; background: #111; color: var(--primary); border: 1px solid var(--primary); padding: 10px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; cursor: pointer; z-index: 10006; display: none; transition: all 0.3s; }
         #stats-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 25000; display: none; justify-content: center; align-items: center; }
-        
         .color-picker-container { margin-top: 15px; display: flex; align-items: center; gap: 10px; justify-content: center; }
         #theme-color { cursor: pointer; border: none; background: none; width: 40px; height: 40px; }
+        #lotto-btn { background: linear-gradient(45deg, #ff0055, #ffcc00); color: black; border: none; padding: 8px 15px; border-radius: 10px; font-weight: bold; font-size: 0.6rem; cursor: pointer; margin-bottom: 10px; animation: glowLotto 1.5s infinite alternate; }
+        @keyframes glowLotto { from { box-shadow: 0 0 5px #ff0055; } to { box-shadow: 0 0 15px #ffcc00; } }
+        #lotto-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 26000; display: none; justify-content: center; align-items: center; }
+        .lotto-option { background: #222; border: 1px solid #444; padding: 15px; border-radius: 15px; margin: 10px 0; cursor: pointer; transition: 0.3s; }
+        .lotto-option:hover { border-color: var(--primary); background: #2a2a2a; }
+        .lotto-option.disabled { opacity: 0.4; cursor: not-allowed; }
+        
+        /* SLOT MACHINE CSS */
+        #slot-container { width: 100px; height: 100px; background: #000; border: 4px solid gold; border-radius: 15px; margin: 20px auto; overflow: hidden; position: relative; display: none;}
+        .slot-reel { position: absolute; top: 0; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; transition: top 2s cubic-bezier(0.45, 0.05, 0.55, 0.95); }
+        .slot-item { height: 100px; line-height: 100px; font-size: 3rem; text-align: center; }
     </style>
 </head>
 <body>
 <audio id="snd-rip" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
-
 <button id="stats-btn" onclick="openStats()">📊 STATS</button>
-
 <div id="intro-screen">
     <button id="auth-trigger-btn" onclick="toggleAuthModal()">🔑 CONNEXION / INSCRIPTION</button>
     <button id="start-btn" onclick="openDex()">DÉMARRER</button>
     <div class="door door-top"></div>
     <div class="door door-bottom"></div>
 </div>
-
 <div id="auth-modal">
     <div class="modal-content">
         <h2 id="auth-title" style="color:var(--primary)">Connexion</h2>
@@ -148,7 +142,6 @@
         <button onclick="document.getElementById('auth-modal').style.display='none'" style="background:none; border:none; color:gray; margin-top:10px; cursor:pointer;">Fermer</button>
     </div>
 </div>
-
 <div id="stats-modal">
     <div class="modal-content">
         <h2 style="color:var(--primary)">STATISTIQUES</h2>
@@ -161,33 +154,28 @@
         <button onclick="document.getElementById('stats-modal').style.display='none'" style="background:none; border:none; color:var(--primary); margin-top:20px; cursor:pointer; font-weight:bold;">RETOUR</button>
     </div>
 </div>
-
 <div id="main-site">
     <h2 style="text-align:center; letter-spacing: 5px; color:#222; margin-top: 40px;">SLIBARRE-DEX</h2>
     <div class="pokedex-grid" id="grid"></div>
 </div>
-
 <div id="pack-selection">
     <h2>CHOISIR UN PACK</h2>
     <div class="pack-item-btn" onclick="preparePack('💧')">💧 PACK AQUA</div>
     <div class="pack-item-btn" style="border-color: gold;" onclick="preparePack('👑')">👑 PACK ELITE</div>
     <button onclick="document.getElementById('pack-selection').style.display='none'" style="background:none; border:none; color:white; margin-top:20px; cursor:pointer;">RETOUR</button>
 </div>
-
 <div id="booster-anim">
     <div class="pack-wrapper" id="pack-wrap" onclick="triggerRip()">
         <div class="pack-half p-top" id="half-t"></div>
         <div class="pack-half p-bottom" id="half-b"></div>
     </div>
 </div>
-
 <div id="rarity-menu">
     <h2 id="menu-name">NOM</h2>
     <div id="choice-standard" class="choice-card"><h4>STANDARD</h4><span id="status-s">LOCKED</span></div>
     <div id="choice-legendary" class="choice-card"><h4>LÉGENDAIRE</h4><span id="status-l">LOCKED</span></div>
     <button onclick="document.getElementById('rarity-menu').style.display='none'" style="margin-top:30px; background:none; border:1px solid #444; color:gray; padding:10px 25px; border-radius:10px; cursor:pointer;">RETOUR</button>
 </div>
-
 <div id="focus-overlay">
     <span class="close-btn" onclick="closeCard()">&times;</span>
     <div class="card-3d-wrapper" id="card-3d">
@@ -195,41 +183,38 @@
         <div class="card-face card-back" id="back-content"></div>
     </div>
 </div>
-
+<div id="lotto-modal">
+    <div class="modal-content" id="lotto-inner">
+        <h2 style="color:#ffcc00; margin-bottom: 5px;">🎰 LOTERIE 🎰</h2>
+        <div id="slot-container"><div class="slot-reel" id="reel"></div></div>
+        <div id="lotto-ui">
+            <p style="font-size:0.7rem; color:gray; margin-bottom:20px;">Misez pour gagner 7 Boosters !</p>
+            <div id="opt-1" class="lotto-option" onclick="playLotto(1, 0.10)"><div>Miser 1 ⚡</div><div style="font-size:0.8rem; color:#ff0055">10% Chance</div></div>
+            <div id="opt-2" class="lotto-option" onclick="playLotto(2, 0.25)"><div>Miser 2 ⚡</div><div style="font-size:0.8rem; color:#ff0055">25% Chance</div></div>
+            <div id="opt-3" class="lotto-option" onclick="playLotto(3, 0.35)"><div>Miser 3 ⚡</div><div style="font-size:0.8rem; color:#ff0055">35% Chance</div></div>
+            <button onclick="document.getElementById('lotto-modal').style.display='none'" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">Fermer</button>
+        </div>
+    </div>
+</div>
 <div id="pack-opener-area">
+    <button id="lotto-btn" onclick="openLottoMenu()">🎰 LOTERIE DE LA CHANCE</button>
     <button id="open-pack-btn" onclick="document.getElementById('pack-selection').style.display='flex'">OBTENIR DES CARTES</button>
     <div id="energy-display">CHARGES : <span id="charge-count">3</span>/3 <span id="timer-display" style="font-weight:normal; opacity:0.6; font-size:0.7rem"></span></div>
 </div>
-
 <script>
-    let userInventory = {}; 
-    let doublonsCount = 0;
-    let isSignup = false;
-    let currentPackIcon = '💧';
-    let charges = 3;
-    let lastRecharge = Date.now();
-    const COOLDOWN = 3600000; 
-
+    let userInventory = {}; let doublonsCount = 0; let isSignup = false; let currentPackIcon = '💧'; let charges = 3; let lastRecharge = Date.now(); const COOLDOWN = 3600000; 
     function updateEnergySystem() {
-        const now = Date.now();
-        const diff = now - lastRecharge;
-        if (charges < 3 && diff >= COOLDOWN) {
-            const extra = Math.floor(diff / COOLDOWN);
-            charges = Math.min(3, charges + extra);
-            lastRecharge = now;
-            saveData();
-        }
+        const now = Date.now(); const diff = now - lastRecharge;
+        if (charges < 3 && diff >= COOLDOWN) { const extra = Math.floor(diff / COOLDOWN); charges = Math.min(3, charges + extra); lastRecharge = now; saveData(); }
         document.getElementById('charge-count').innerText = charges;
         document.getElementById('open-pack-btn').disabled = charges <= 0;
         if (charges < 3) {
             const remaining = COOLDOWN - (now - lastRecharge);
-            const mins = Math.floor(remaining / 60000);
-            const secs = Math.floor((remaining % 60000) / 1000);
+            const mins = Math.floor(remaining / 60000); const secs = Math.floor((remaining % 60000) / 1000);
             document.getElementById('timer-display').innerText = `(+1 dans ${mins}m ${secs}s)`;
         } else { document.getElementById('timer-display').innerText = ""; }
     }
     setInterval(updateEnergySystem, 1000);
-
     const members = [
         { id: 'malo', name: 'malo', icon: '💧', color: '#00d2ff', desc: 'Maître des flux.' },
         { id: 'lilian', name: 'lilian', icon: '👁️', color: '#bd00ff', desc: 'L\'Observateur.' },
@@ -237,205 +222,110 @@
         { id: 'arthur', name: 'arthur', icon: '⛩️', color: '#ff3e3e', desc: 'Le Shogun.' },
         { id: 'danny', name: 'danny', icon: '🎮', color: '#39ff14', desc: 'Le Gamer.' }
     ];
-
-    function toggleAuthModal() {
-        if(window.auth.currentUser) { if(confirm("Déconnexion ?")) window.auth.signOut(); }
-        else { document.getElementById('auth-modal').style.display = 'flex'; }
-    }
-
+    function toggleAuthModal() { if(window.auth.currentUser) { if(confirm("Déconnexion ?")) window.auth.signOut(); } else { document.getElementById('auth-modal').style.display = 'flex'; } }
     function openDex() {
-        document.getElementById('auth-trigger-btn').style.display = 'none';
-        document.getElementById('start-btn').style.display = 'none';
-        document.getElementById('stats-btn').style.display = 'block';
-        document.getElementById('intro-screen').classList.add('opened');
-        setTimeout(() => { document.getElementById('intro-screen').style.display = 'none'; }, 800);
+        document.getElementById('auth-trigger-btn').style.display = 'none'; document.getElementById('start-btn').style.display = 'none'; document.getElementById('stats-btn').style.display = 'block';
+        document.getElementById('intro-screen').classList.add('opened'); setTimeout(() => { document.getElementById('intro-screen').style.display = 'none'; }, 800);
         updateGrid();
     }
-
     function updateGrid() {
-        const grid = document.getElementById('grid');
-        grid.innerHTML = '';
+        const grid = document.getElementById('grid'); grid.innerHTML = '';
         members.forEach(m => {
             const hasAny = userInventory[m.id] && (userInventory[m.id].standard || userInventory[m.id].legendary);
-            const div = document.createElement('div');
-            div.className = 'card-thumb';
-            div.style.borderColor = hasAny ? m.color : '#222';
+            const div = document.createElement('div'); div.className = 'card-thumb'; div.style.borderColor = hasAny ? m.color : '#222';
             div.innerHTML = `${!hasAny ? '<span class="lock-icon">🔒</span>' : ''}<div style="font-size:2.5rem">${m.icon}</div><div style="font-weight:bold; margin-top:10px; color:${m.color}">${m.name.toUpperCase()}</div>`;
-            div.onclick = () => openRarityMenu(m);
-            grid.appendChild(div);
+            div.onclick = () => openRarityMenu(m); grid.appendChild(div);
         });
     }
-
     function openStats() {
-        let ownedCount = 0;
-        members.forEach(m => {
-            if(userInventory[m.id]?.standard) ownedCount++;
-            if(userInventory[m.id]?.legendary) ownedCount++;
-        });
-        const total = members.length * 2;
-        const percent = Math.round((ownedCount / total) * 100);
-        document.getElementById('stats-content').innerHTML = `
-            <b>Progression :</b> ${percent}% (${ownedCount}/${total})<br>
-            <b>Doublons :</b> ${doublonsCount}/5<br>
-            <b>Taux Drop Légendaire :</b> 5%<br>
-            <b>Succès :</b> ${percent == 100 ? '🏆 Maître Slibard' : 'En cours...'}
-        `;
+        let ownedCount = 0; members.forEach(m => { if(userInventory[m.id]?.standard) ownedCount++; if(userInventory[m.id]?.legendary) ownedCount++; });
+        const total = members.length * 2; const percent = Math.round((ownedCount / total) * 100);
+        document.getElementById('stats-content').innerHTML = `<b>Progression :</b> ${percent}% (${ownedCount}/${total})<br><b>Doublons :</b> ${doublonsCount}/5<br><b>Taux Drop Légendaire :</b> 5%<br><b>Succès :</b> ${percent == 100 ? '🏆 Maître Slibard' : 'En cours...'}`;
         document.getElementById('stats-modal').style.display = 'flex';
     }
-
-    function changeInterfaceColor(color) {
-        document.documentElement.style.setProperty('--primary', color);
-        saveData();
-    }
-
+    function changeInterfaceColor(color) { document.documentElement.style.setProperty('--primary', color); saveData(); }
     function openRarityMenu(m) {
-        const menu = document.getElementById('rarity-menu');
-        const inv = userInventory[m.id] || { standard: false, legendary: false };
-        document.getElementById('menu-name').innerText = m.name.toUpperCase();
-        document.getElementById('menu-name').style.color = m.color;
-        menu.style.display = 'flex';
-        const sBtn = document.getElementById('choice-standard');
-        sBtn.className = `choice-card ${inv.standard ? '' : 'locked'}`;
-        sBtn.style.borderColor = inv.standard ? m.color : '#222';
-        document.getElementById('status-s').innerText = inv.standard ? "POSSÉDÉE" : "LOCKED";
-        sBtn.onclick = inv.standard ? () => { openCard(m, false, false); menu.style.display='none'; } : null;
-        const lBtn = document.getElementById('choice-legendary');
-        lBtn.className = `choice-card ${inv.legendary ? '' : 'locked'}`;
-        lBtn.style.borderColor = inv.legendary ? 'gold' : '#222';
-        document.getElementById('status-l').innerText = inv.legendary ? "POSSÉDÉE" : "LOCKED";
-        lBtn.onclick = inv.legendary ? () => { openCard(m, false, true); menu.style.display='none'; } : null;
+        const menu = document.getElementById('rarity-menu'); const inv = userInventory[m.id] || { standard: false, legendary: false };
+        document.getElementById('menu-name').innerText = m.name.toUpperCase(); document.getElementById('menu-name').style.color = m.color; menu.style.display = 'flex';
+        const sBtn = document.getElementById('choice-standard'); sBtn.className = `choice-card ${inv.standard ? '' : 'locked'}`; sBtn.style.borderColor = inv.standard ? m.color : '#222';
+        document.getElementById('status-s').innerText = inv.standard ? "POSSÉDÉE" : "LOCKED"; sBtn.onclick = inv.standard ? () => { openCard(m, false, false); menu.style.display='none'; } : null;
+        const lBtn = document.getElementById('choice-legendary'); lBtn.className = `choice-card ${inv.legendary ? '' : 'locked'}`; lBtn.style.borderColor = inv.legendary ? 'gold' : '#222';
+        document.getElementById('status-l').innerText = inv.legendary ? "POSSÉDÉE" : "LOCKED"; lBtn.onclick = inv.legendary ? () => { openCard(m, false, true); menu.style.display='none'; } : null;
     }
-
     function preparePack(icon) {
-        if(!window.auth.currentUser) return alert("Connecte-toi !");
-        if(charges <= 0) return alert("Plus de charges !");
-        document.getElementById('pack-selection').style.display = 'none';
-        document.getElementById('booster-anim').style.display = 'flex';
-        document.getElementById('half-t').innerText = icon;
-        document.getElementById('half-b').innerText = icon;
+        if(!window.auth.currentUser) return alert("Connecte-toi !"); if(charges <= 0) return alert("Plus de charges !");
+        document.getElementById('pack-selection').style.display = 'none'; document.getElementById('booster-anim').style.display = 'flex';
+        document.getElementById('half-t').innerText = icon; document.getElementById('half-b').innerText = icon;
     }
-
     function triggerRip() {
-        const pack = document.getElementById('pack-wrap');
-        if (pack.classList.contains('ripping')) return;
-        if(navigator.vibrate) navigator.vibrate(50);
-        charges--;
-        updateEnergySystem();
-        document.getElementById('snd-rip').play();
-        pack.classList.add('ripping');
-        const member = members[Math.floor(Math.random()*members.length)];
-        const isLeg = Math.random() < 0.05;
-        const rarity = isLeg ? 'legendary' : 'standard';
+        const pack = document.getElementById('pack-wrap'); if (pack.classList.contains('ripping')) return; if(navigator.vibrate) navigator.vibrate(50);
+        charges--; updateEnergySystem(); document.getElementById('snd-rip').play(); pack.classList.add('ripping');
+        const member = members[Math.floor(Math.random()*members.length)]; const isLeg = Math.random() < 0.05; const rarity = isLeg ? 'legendary' : 'standard';
         if(userInventory[member.id] && userInventory[member.id][rarity]) {
-            doublonsCount++;
-            if(doublonsCount >= 5) {
-                doublonsCount = 0; charges = Math.min(3, charges + 1);
-                alert("✨ 5 DOUBLONS ! Vous gagnez +1 CHARGE !");
-            }
-        } else {
-            userInventory[member.id] = { ...(userInventory[member.id] || {}), [rarity]: true };
+            doublonsCount++; if(doublonsCount >= 5) { doublonsCount = 0; charges = Math.min(3, charges + 1); alert("✨ 5 DOUBLONS ! Vous gagnez +1 CHARGE !"); }
+        } else { userInventory[member.id] = { ...(userInventory[member.id] || {}), [rarity]: true }; }
+        saveData(); setTimeout(() => { document.getElementById('booster-anim').style.display = 'none'; pack.classList.remove('ripping'); openCard(member, true, isLeg); }, 800);
+    }
+    function openLottoMenu() {
+        if(!window.auth.currentUser) return alert("Connecte-toi d'abord !");
+        document.getElementById('lotto-modal').style.display = 'flex';
+        document.getElementById('lotto-ui').style.display = 'block';
+        document.getElementById('slot-container').style.display = 'none';
+        document.getElementById('opt-1').className = `lotto-option ${charges < 1 ? 'disabled' : ''}`;
+        document.getElementById('opt-2').className = `lotto-option ${charges < 2 ? 'disabled' : ''}`;
+        document.getElementById('opt-3').className = `lotto-option ${charges < 3 ? 'disabled' : ''}`;
+    }
+    function playLotto(cost, proba) {
+        if(charges < cost) return;
+        charges -= cost; updateEnergySystem();
+        document.getElementById('lotto-ui').style.display = 'none';
+        const container = document.getElementById('slot-container');
+        const reel = document.getElementById('reel');
+        container.style.display = 'block';
+        const win = Math.random() <= proba;
+        let items = ['❌','💧','💀','🔥','🍕','💎','👑'];
+        reel.innerHTML = '';
+        for(let i=0; i<20; i++) {
+            const div = document.createElement('div'); div.className = 'slot-item';
+            div.innerText = items[Math.floor(Math.random()*items.length)];
+            reel.appendChild(div);
         }
-        saveData();
+        const finalDiv = document.createElement('div'); finalDiv.className = 'slot-item';
+        finalDiv.innerText = win ? '👑' : '❌';
+        reel.appendChild(finalDiv);
+        reel.style.top = '0px';
+        setTimeout(() => { reel.style.top = `-${(reel.children.length-1)*100}px`; }, 100);
         setTimeout(() => {
-            document.getElementById('booster-anim').style.display = 'none';
-            pack.classList.remove('ripping');
-            openCard(member, true, isLeg);
-        }, 800);
+            if(win) { charges += 7; alert("GAGNÉ ! +7 CHARGES !"); }
+            else { alert("PERDU..."); }
+            saveData(); updateEnergySystem();
+            document.getElementById('lotto-modal').style.display = 'none';
+        }, 2500);
     }
-
     async function saveData() {
-        if(!window.auth.currentUser) return;
-        const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-        await window.dbSet(window.dbDoc(window.db, "users", window.auth.currentUser.uid), { 
-            inventory: userInventory, 
-            doublons: doublonsCount, 
-            charges: charges, 
-            lastRecharge: lastRecharge,
-            themeColor: themeColor
-        }, { merge: true });
+        if(!window.auth.currentUser) return; const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+        await window.dbSet(window.dbDoc(window.db, "users", window.auth.currentUser.uid), { inventory: userInventory, doublons: doublonsCount, charges: charges, lastRecharge: lastRecharge, themeColor: themeColor }, { merge: true });
     }
-
     let isDragging = false, startX, startY, curRotY = 0, curRotX = 0;
     function openCard(m, isPop, isLegendary) {
-        const overlay = document.getElementById('focus-overlay');
-        const card = document.getElementById('card-3d');
-        overlay.style.display = 'flex';
-        curRotY = 0; curRotX = 0; updateCardTransform();
+        const overlay = document.getElementById('focus-overlay'); const card = document.getElementById('card-3d'); overlay.style.display = 'flex'; curRotY = 0; curRotX = 0; updateCardTransform();
         if(isPop) { card.classList.add('reveal-pop'); setTimeout(() => card.classList.remove('reveal-pop'), 800); }
         const rarityClass = isLegendary ? 'legendary' : 'common';
         document.getElementById('front-content').className = `card-face card-front ${rarityClass}`;
-        document.getElementById('front-content').innerHTML = `
-            <div class="specular-shine" id="shine-f"></div>
-            <div class="img-container"><img src="${m.name}_face.png"></div>
-            <div style="position:absolute; bottom:20px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; border-left:5px solid ${isLegendary ? 'gold' : m.color}; z-index:10; backdrop-filter:blur(5px);">
-                <div style="font-size:0.6rem; color:gold; margin-bottom:2px; font-weight:bold;">${isLegendary ? '✦ LÉGENDAIRE' : '• STANDARD'}</div>
-                <h3 style="margin:0; color:${isLegendary ? 'gold' : 'white'};">${m.name.toUpperCase()}</h3>
-                <p style="margin:5px 0 0; font-size:0.85rem; opacity:0.8;">${m.desc}</p>
-            </div>`;
+        document.getElementById('front-content').innerHTML = `<div class="specular-shine" id="shine-f"></div><div class="img-container"><img src="${m.name}_face.png"></div><div style="position:absolute; bottom:20px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; border-left:5px solid ${isLegendary ? 'gold' : m.color}; z-index:10; backdrop-filter:blur(5px);"><div style="font-size:0.6rem; color:gold; margin-bottom:2px; font-weight:bold;">${isLegendary ? '✦ LÉGENDAIRE' : '• STANDARD'}</div><h3 style="margin:0; color:${isLegendary ? 'gold' : 'white'};">${m.name.toUpperCase()}</h3><p style="margin:5px 0 0; font-size:0.85rem; opacity:0.8;">${m.desc}</p></div>`;
         document.getElementById('back-content').className = `card-face card-back ${rarityClass}`;
         document.getElementById('back-content').innerHTML = `<div class="specular-shine" id="shine-b"></div><div class="img-container"><img src="${m.name}_dos.png"></div>`;
     }
-
     function updateCardTransform() {
-        const card = document.getElementById('card-3d');
-        if(!card) return;
-        card.style.transform = `rotateY(${curRotY}deg) rotateX(${curRotX}deg)`;
-        const moveX = (curRotY % 360) * 3; const moveY = curRotX * 3;
-        const sf = document.getElementById('shine-f'), sb = document.getElementById('shine-b');
-        if(sf) sf.style.transform = `translate(${moveX}px, ${moveY}px)`;
-        if(sb) sb.style.transform = `translate(${-moveX}px, ${moveY}px)`;
+        const card = document.getElementById('card-3d'); if(!card) return; card.style.transform = `rotateY(${curRotY}deg) rotateX(${curRotX}deg)`;
+        const moveX = (curRotY % 360) * 3; const moveY = curRotX * 3; const sf = document.getElementById('shine-f'), sb = document.getElementById('shine-b');
+        if(sf) sf.style.transform = `translate(${moveX}px, ${moveY}px)`; if(sb) sb.style.transform = `translate(${-moveX}px, ${moveY}px)`;
     }
-
     const startAction = (e) => { isDragging = true; startX = (e.pageX || e.touches[0].pageX); startY = (e.pageY || e.touches[0].pageY); };
-    const moveAction = (e) => {
-        if (!isDragging) return;
-        const x = (e.pageX || e.touches[0].pageX), y = (e.pageY || e.touches[0].pageY);
-        curRotY += (x - startX) * 0.7; curRotX = Math.max(-60, Math.min(60, curRotX - (y - startY) * 0.7));
-        startX = x; startY = y; updateCardTransform();
-    };
-    const overlay = document.getElementById('focus-overlay');
-    overlay.addEventListener('mousedown', startAction); overlay.addEventListener('touchstart', startAction);
-    window.addEventListener('mousemove', moveAction); window.addEventListener('touchmove', moveAction);
-    window.addEventListener('mouseup', () => isDragging = false); window.addEventListener('touchend', () => isDragging = false);
+    const moveAction = (e) => { if (!isDragging) return; const x = (e.pageX || e.touches[0].pageX), y = (e.pageY || e.touches[0].pageY); curRotY += (x - startX) * 0.7; curRotX = Math.max(-60, Math.min(60, curRotX - (y - startY) * 0.7)); startX = x; startY = y; updateCardTransform(); };
+    const overlay = document.getElementById('focus-overlay'); overlay.addEventListener('mousedown', startAction); overlay.addEventListener('touchstart', startAction);
+    window.addEventListener('mousemove', moveAction); window.addEventListener('touchmove', moveAction); window.addEventListener('mouseup', () => isDragging = false); window.addEventListener('touchend', () => isDragging = false);
     function closeCard() { document.getElementById('focus-overlay').style.display = 'none'; }
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-       
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
