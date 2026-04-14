@@ -35,6 +35,7 @@
                         doublonsCount = data.doublons || 0;
                         if(data.charges !== undefined) charges = data.charges;
                         if(data.lastRecharge !== undefined) lastRecharge = data.lastRecharge;
+                        if(data.lastSkillTime !== undefined) lastSkillTime = data.lastSkillTime;
                         if(data.themeColor) document.documentElement.style.setProperty('--primary', data.themeColor);
                         updateGrid();
                     }
@@ -117,10 +118,21 @@
         .lotto-option:hover { border-color: var(--primary); background: #2a2a2a; }
         .lotto-option.disabled { opacity: 0.4; cursor: not-allowed; }
         
-        /* SLOT MACHINE CSS */
         #slot-container { width: 100px; height: 100px; background: #000; border: 4px solid gold; border-radius: 15px; margin: 20px auto; overflow: hidden; position: relative; display: none;}
         .slot-reel { position: absolute; top: 0; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; transition: top 2s cubic-bezier(0.45, 0.05, 0.55, 0.95); }
         .slot-item { height: 100px; line-height: 100px; font-size: 3rem; text-align: center; }
+
+        /* SKILL CSS */
+        #skill-modal { position: fixed; inset: 0; background: #000; z-index: 27000; display: none; justify-content: center; align-items: center; flex-direction: column; overflow: hidden; }
+        .core-sphere { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 50px var(--primary); transition: transform 0.05s linear; position: relative; z-index: 5; }
+        .core-ring { position: absolute; border: 2px solid var(--primary); border-radius: 50%; animation: rot linear infinite; opacity: 0.3; pointer-events: none; }
+        .target-zone { position: absolute; width: 140px; height: 140px; border: 2px dashed rgba(255,255,255,0.2); border-radius: 50%; pointer-events: none; }
+        @keyframes rot { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+        .unstable { animation: extremeShake 0.05s infinite; box-shadow: 0 0 80px #ff0055 !important; background: #ff0055 !important; }
+        @keyframes extremeShake { 0% { transform: translate(3px,3px) scale(1.6); } 50% { transform: translate(-3px,-3px) scale(1.65); } 100% { transform: translate(3px,-3px) scale(1.6); } }
+        #skill-game-btn { background: #000; color: #39ff14; border: 1px solid #39ff14; padding: 5px 12px; border-radius: 8px; font-size: 0.6rem; cursor: pointer; margin-bottom: 5px; }
+        #overload-cooldown-view { display: none; text-align: center; }
+        #overload-game-view { display: none; text-align: center; flex-direction: column; align-items: center; }
     </style>
 </head>
 <body>
@@ -196,22 +208,53 @@
         </div>
     </div>
 </div>
+
+<div id="skill-modal">
+    <div id="overload-cooldown-view">
+        <h2 style="color:#ff0055">OVERLOAD EN CHARGE</h2>
+        <div id="ov-timer" style="font-size: 2rem; margin: 20px 0; font-family: monospace;">00:00:00</div>
+        <p style="color:gray; font-size: 0.8rem;">Le réacteur doit refroidir avant une nouvelle injection.</p>
+        <button onclick="document.getElementById('skill-modal').style.display='none'" style="margin-top:30px; background:none; border:1px solid #444; color:white; padding:10px 20px; border-radius:10px;">RETOUR</button>
+    </div>
+
+    <div id="overload-game-view">
+        <h2 id="skill-status" style="margin-bottom:5px; font-size:0.9rem">STABILISATION REQUISE</h2>
+        <p style="font-size:0.6rem; color:gray; margin-bottom:20px;">Relâche entre 92% et 98%</p>
+        <div style="display:flex; justify-content:center; align-items:center; height:220px; position:relative;">
+            <div class="target-zone"></div>
+            <div class="core-ring" style="width:180px; height:180px; animation-duration:3s;"></div>
+            <div class="core-ring" style="width:120px; height:120px; animation-duration:1.5s; animation-direction:reverse;"></div>
+            <div class="core-sphere" id="skill-sphere" 
+                 onmousedown="startCharge()" ontouchstart="startCharge()" 
+                 onmouseup="stopCharge()" ontouchend="stopCharge()" 
+                 onmouseleave="stopCharge()"></div>
+        </div>
+        <div style="width:240px; height:6px; background:#111; margin-top:30px; border-radius:10px; overflow:hidden; border:1px solid #222;">
+            <div id="skill-bar" style="height:100%; width:0; background:linear-gradient(90deg, var(--primary), #ff0055); transition: none;"></div>
+        </div>
+        <button onclick="document.getElementById('skill-modal').style.display='none'" style="margin-top:40px; background:none; border:none; color:gray; font-size:0.7rem">ABANDONNER</button>
+    </div>
+</div>
+
 <div id="pack-opener-area">
+    <button id="skill-game-btn" onclick="openSkill()">⚡ OVERLOAD (FREE)</button>
     <button id="lotto-btn" onclick="openLottoMenu()">🎰 LOTERIE DE LA CHANCE</button>
     <button id="open-pack-btn" onclick="document.getElementById('pack-selection').style.display='flex'">OBTENIR DES CARTES</button>
     <div id="energy-display">CHARGES : <span id="charge-count">3</span>/3 <span id="timer-display" style="font-weight:normal; opacity:0.6; font-size:0.7rem"></span></div>
 </div>
+
 <script>
-    let userInventory = {}; let doublonsCount = 0; let isSignup = false; let currentPackIcon = '💧'; let charges = 3; let lastRecharge = Date.now(); const COOLDOWN = 3600000; 
+    let userInventory = {}; let doublonsCount = 0; let isSignup = false; let charges = 3; let lastRecharge = Date.now(); let lastSkillTime = 0; const COOLDOWN = 3600000; 
+    let timerInterval = null;
+
     function updateEnergySystem() {
         const now = Date.now(); const diff = now - lastRecharge;
-        if (charges < 3 && diff >= COOLDOWN) { const extra = Math.floor(diff / COOLDOWN); charges = Math.min(3, charges + extra); lastRecharge = now; saveData(); }
+        if (charges < 3 && diff >= COOLDOWN) { charges = Math.min(3, charges + Math.floor(diff / COOLDOWN)); lastRecharge = now; saveData(); }
         document.getElementById('charge-count').innerText = charges;
         document.getElementById('open-pack-btn').disabled = charges <= 0;
         if (charges < 3) {
-            const remaining = COOLDOWN - (now - lastRecharge);
-            const mins = Math.floor(remaining / 60000); const secs = Math.floor((remaining % 60000) / 1000);
-            document.getElementById('timer-display').innerText = `(+1 dans ${mins}m ${secs}s)`;
+            const rem = COOLDOWN - (now - lastRecharge);
+            document.getElementById('timer-display').innerText = `(+1 dans ${Math.floor(rem/60000)}m ${Math.floor((rem%60000)/1000)}s)`;
         } else { document.getElementById('timer-display').innerText = ""; }
     }
     setInterval(updateEnergySystem, 1000);
@@ -238,9 +281,8 @@
         });
     }
     function openStats() {
-        let ownedCount = 0; members.forEach(m => { if(userInventory[m.id]?.standard) ownedCount++; if(userInventory[m.id]?.legendary) ownedCount++; });
-        const total = members.length * 2; const percent = Math.round((ownedCount / total) * 100);
-        document.getElementById('stats-content').innerHTML = `<b>Progression :</b> ${percent}% (${ownedCount}/${total})<br><b>Doublons :</b> ${doublonsCount}/5<br><b>Taux Drop Légendaire :</b> 5%<br><b>Succès :</b> ${percent == 100 ? '🏆 Maître Slibard' : 'En cours...'}`;
+        let owned = 0; members.forEach(m => { if(userInventory[m.id]?.standard) owned++; if(userInventory[m.id]?.legendary) owned++; });
+        document.getElementById('stats-content').innerHTML = `<b>Progression :</b> ${Math.round((owned/(members.length*2))*100)}% (${owned}/${members.length*2})<br><b>Doublons :</b> ${doublonsCount}/5<br><b>Taux Légendaire :</b> 5%`;
         document.getElementById('stats-modal').style.display = 'flex';
     }
     function changeInterfaceColor(color) { document.documentElement.style.setProperty('--primary', color); saveData(); }
@@ -258,8 +300,7 @@
         document.getElementById('half-t').innerText = icon; document.getElementById('half-b').innerText = icon;
     }
     function triggerRip() {
-        const pack = document.getElementById('pack-wrap'); if (pack.classList.contains('ripping')) return; if(navigator.vibrate) navigator.vibrate(50);
-        charges--; updateEnergySystem(); document.getElementById('snd-rip').play(); pack.classList.add('ripping');
+        const pack = document.getElementById('pack-wrap'); if (pack.classList.contains('ripping')) return; charges--; updateEnergySystem(); document.getElementById('snd-rip').play(); pack.classList.add('ripping');
         const member = members[Math.floor(Math.random()*members.length)]; const isLeg = Math.random() < 0.05; const rarity = isLeg ? 'legendary' : 'standard';
         if(userInventory[member.id] && userInventory[member.id][rarity]) {
             doublonsCount++; if(doublonsCount >= 5) { doublonsCount = 0; charges = Math.min(3, charges + 1); alert("✨ 5 DOUBLONS ! Vous gagnez +1 CHARGE !"); }
@@ -267,65 +308,131 @@
         saveData(); setTimeout(() => { document.getElementById('booster-anim').style.display = 'none'; pack.classList.remove('ripping'); openCard(member, true, isLeg); }, 800);
     }
     function openLottoMenu() {
-        if(!window.auth.currentUser) return alert("Connecte-toi d'abord !");
-        document.getElementById('lotto-modal').style.display = 'flex';
-        document.getElementById('lotto-ui').style.display = 'block';
-        document.getElementById('slot-container').style.display = 'none';
-        document.getElementById('opt-1').className = `lotto-option ${charges < 1 ? 'disabled' : ''}`;
-        document.getElementById('opt-2').className = `lotto-option ${charges < 2 ? 'disabled' : ''}`;
-        document.getElementById('opt-3').className = `lotto-option ${charges < 3 ? 'disabled' : ''}`;
+        if(!window.auth.currentUser) return alert("Connecte-toi !"); document.getElementById('lotto-modal').style.display = 'flex';
+        document.getElementById('lotto-ui').style.display = 'block'; document.getElementById('slot-container').style.display = 'none';
+        ['opt-1','opt-2','opt-3'].forEach((id, i) => document.getElementById(id).className = `lotto-option ${charges < (i+1) ? 'disabled' : ''}`);
     }
     function playLotto(cost, proba) {
-        if(charges < cost) return;
-        charges -= cost; updateEnergySystem();
-        document.getElementById('lotto-ui').style.display = 'none';
-        const container = document.getElementById('slot-container');
-        const reel = document.getElementById('reel');
-        container.style.display = 'block';
-        const win = Math.random() <= proba;
-        let items = ['❌','💧','💀','🔥','🍕','💎','👑'];
-        reel.innerHTML = '';
-        for(let i=0; i<20; i++) {
-            const div = document.createElement('div'); div.className = 'slot-item';
-            div.innerText = items[Math.floor(Math.random()*items.length)];
-            reel.appendChild(div);
-        }
-        const finalDiv = document.createElement('div'); finalDiv.className = 'slot-item';
-        finalDiv.innerText = win ? '👑' : '❌';
-        reel.appendChild(finalDiv);
-        reel.style.top = '0px';
-        setTimeout(() => { reel.style.top = `-${(reel.children.length-1)*100}px`; }, 100);
-        setTimeout(() => {
-            if(win) { charges += 7; alert("GAGNÉ ! +7 CHARGES !"); }
-            else { alert("PERDU..."); }
-            saveData(); updateEnergySystem();
-            document.getElementById('lotto-modal').style.display = 'none';
-        }, 2500);
+        if(charges < cost) return; charges -= cost; updateEnergySystem();
+        document.getElementById('lotto-ui').style.display = 'none'; const reel = document.getElementById('reel');
+        document.getElementById('slot-container').style.display = 'block'; const win = Math.random() <= proba;
+        reel.innerHTML = ''; for(let i=0; i<20; i++) { const d = document.createElement('div'); d.className='slot-item'; d.innerText=['❌','💧','🔥','🍕','💎'][Math.floor(Math.random()*5)]; reel.appendChild(d); }
+        const f = document.createElement('div'); f.className='slot-item'; f.innerText=win?'👑':'❌'; reel.appendChild(f); reel.style.top='0px';
+        setTimeout(() => reel.style.top = `-${(reel.children.length-1)*100}px`, 100);
+        setTimeout(() => { if(win) { charges += 7; alert("GAGNÉ ! +7 CHARGES !"); } else alert("PERDU..."); saveData(); updateEnergySystem(); document.getElementById('lotto-modal').style.display='none'; }, 2500);
     }
-    async function saveData() {
-        if(!window.auth.currentUser) return; const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-        await window.dbSet(window.dbDoc(window.db, "users", window.auth.currentUser.uid), { inventory: userInventory, doublons: doublonsCount, charges: charges, lastRecharge: lastRecharge, themeColor: themeColor }, { merge: true });
-    }
+    async function saveData() { if(window.auth.currentUser) await window.dbSet(window.dbDoc(window.db, "users", window.auth.currentUser.uid), { inventory: userInventory, doublons: doublonsCount, charges: charges, lastRecharge: lastRecharge, lastSkillTime: lastSkillTime, themeColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() }, { merge: true }); }
+    
     let isDragging = false, startX, startY, curRotY = 0, curRotX = 0;
+    const overlay = document.getElementById('focus-overlay');
     function openCard(m, isPop, isLegendary) {
-        const overlay = document.getElementById('focus-overlay'); const card = document.getElementById('card-3d'); overlay.style.display = 'flex'; curRotY = 0; curRotX = 0; updateCardTransform();
-        if(isPop) { card.classList.add('reveal-pop'); setTimeout(() => card.classList.remove('reveal-pop'), 800); }
-        const rarityClass = isLegendary ? 'legendary' : 'common';
-        document.getElementById('front-content').className = `card-face card-front ${rarityClass}`;
-        document.getElementById('front-content').innerHTML = `<div class="specular-shine" id="shine-f"></div><div class="img-container"><img src="${m.name}_face.png"></div><div style="position:absolute; bottom:20px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; border-left:5px solid ${isLegendary ? 'gold' : m.color}; z-index:10; backdrop-filter:blur(5px);"><div style="font-size:0.6rem; color:gold; margin-bottom:2px; font-weight:bold;">${isLegendary ? '✦ LÉGENDAIRE' : '• STANDARD'}</div><h3 style="margin:0; color:${isLegendary ? 'gold' : 'white'};">${m.name.toUpperCase()}</h3><p style="margin:5px 0 0; font-size:0.85rem; opacity:0.8;">${m.desc}</p></div>`;
-        document.getElementById('back-content').className = `card-face card-back ${rarityClass}`;
+        overlay.style.display = 'flex'; curRotY = 0; curRotX = 0; updateCardTransform();
+        if(isPop) { document.getElementById('card-3d').classList.add('reveal-pop'); setTimeout(() => document.getElementById('card-3d').classList.remove('reveal-pop'), 800); }
+        document.getElementById('front-content').className = `card-face card-front ${isLegendary?'legendary':''}`;
+        document.getElementById('front-content').innerHTML = `<div class="specular-shine" id="shine-f"></div><div class="img-container"><img src="${m.name}_face.png"></div><div style="position:absolute; bottom:20px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; border-left:5px solid ${isLegendary?'gold':m.color}; z-index:10; backdrop-filter:blur(5px);"><div style="font-size:0.6rem; color:gold; margin-bottom:2px; font-weight:bold;">${isLegendary?'✦ LÉGENDAIRE':'• STANDARD'}</div><h3 style="margin:0;">${m.name.toUpperCase()}</h3><p style="margin:5px 0 0; font-size:0.85rem; opacity:0.8;">${m.desc}</p></div>`;
         document.getElementById('back-content').innerHTML = `<div class="specular-shine" id="shine-b"></div><div class="img-container"><img src="${m.name}_dos.png"></div>`;
     }
     function updateCardTransform() {
-        const card = document.getElementById('card-3d'); if(!card) return; card.style.transform = `rotateY(${curRotY}deg) rotateX(${curRotX}deg)`;
-        const moveX = (curRotY % 360) * 3; const moveY = curRotX * 3; const sf = document.getElementById('shine-f'), sb = document.getElementById('shine-b');
-        if(sf) sf.style.transform = `translate(${moveX}px, ${moveY}px)`; if(sb) sb.style.transform = `translate(${-moveX}px, ${moveY}px)`;
+        document.getElementById('card-3d').style.transform = `rotateY(${curRotY}deg) rotateX(${curRotX}deg)`;
+        const sf = document.getElementById('shine-f'), sb = document.getElementById('shine-b');
+        if(sf) sf.style.transform = `translate(${(curRotY%360)*2}px, ${curRotX*2}px)`;
+        if(sb) sb.style.transform = `translate(${-(curRotY%360)*2}px, ${curRotX*2}px)`;
     }
-    const startAction = (e) => { isDragging = true; startX = (e.pageX || e.touches[0].pageX); startY = (e.pageY || e.touches[0].pageY); };
-    const moveAction = (e) => { if (!isDragging) return; const x = (e.pageX || e.touches[0].pageX), y = (e.pageY || e.touches[0].pageY); curRotY += (x - startX) * 0.7; curRotX = Math.max(-60, Math.min(60, curRotX - (y - startY) * 0.7)); startX = x; startY = y; updateCardTransform(); };
-    const overlay = document.getElementById('focus-overlay'); overlay.addEventListener('mousedown', startAction); overlay.addEventListener('touchstart', startAction);
-    window.addEventListener('mousemove', moveAction); window.addEventListener('touchmove', moveAction); window.addEventListener('mouseup', () => isDragging = false); window.addEventListener('touchend', () => isDragging = false);
-    function closeCard() { document.getElementById('focus-overlay').style.display = 'none'; }
+    overlay.addEventListener('mousedown', (e) => { isDragging = true; startX = e.pageX; startY = e.pageY; });
+    overlay.addEventListener('touchstart', (e) => { isDragging = true; startX = e.touches[0].pageX; startY = e.touches[0].pageY; });
+    window.addEventListener('mousemove', (e) => { if(!isDragging) return; curRotY += (e.pageX - startX)*0.8; curRotX = Math.max(-60, Math.min(60, curRotX - (e.pageY - startY)*0.8)); startX = e.pageX; startY = e.pageY; updateCardTransform(); });
+    window.addEventListener('touchmove', (e) => { if(!isDragging) return; curRotY += (e.touches[0].pageX - startX)*0.8; curRotX = Math.max(-60, Math.min(60, curRotX - (e.touches[0].pageY - startY)*0.8)); startX = e.touches[0].pageX; startY = e.touches[0].pageY; updateCardTransform(); });
+    window.addEventListener('mouseup', () => isDragging = false); window.addEventListener('touchend', () => isDragging = false);
+    function closeCard() { overlay.style.display = 'none'; }
+
+    // --- OVERLOAD LOGIC (REWORKED WITH LIVE TIMER VIEW) ---
+    let sLvl = 0, sInt = null;
+    const SKILL_COOLDOWN = 7200000; // 2h
+
+    function openSkill() {
+        if(!window.auth.currentUser) return alert("Connecte-toi !");
+        document.getElementById('skill-modal').style.display='flex';
+        
+        const now = Date.now();
+        const diff = now - lastSkillTime;
+
+        if(diff < SKILL_COOLDOWN) {
+            // Afficher la vue Cooldown
+            document.getElementById('overload-game-view').style.display = 'none';
+            document.getElementById('overload-cooldown-view').style.display = 'block';
+            startOverloadTimer(SKILL_COOLDOWN - diff);
+        } else {
+            // Afficher le Jeu
+            document.getElementById('overload-cooldown-view').style.display = 'none';
+            document.getElementById('overload-game-view').style.display = 'flex';
+            sLvl = 0; updateSkillUI();
+        }
+    }
+
+    function startOverloadTimer(ms) {
+        if(timerInterval) clearInterval(timerInterval);
+        const end = Date.now() + ms;
+        
+        function update() {
+            const remaining = end - Date.now();
+            if(remaining <= 0) {
+                clearInterval(timerInterval);
+                openSkill(); // Rafraîchit la vue
+                return;
+            }
+            const h = Math.floor(remaining / 3600000);
+            const m = Math.floor((remaining % 3600000) / 60000);
+            const s = Math.floor((remaining % 60000) / 1000);
+            document.getElementById('ov-timer').innerText = 
+                `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+        update();
+        timerInterval = setInterval(update, 1000);
+    }
+
+    function startCharge() {
+        if(sInt) return;
+        sInt = setInterval(() => {
+            sLvl += 0.8; 
+            updateSkillUI();
+            if(sLvl > 80) { 
+                document.getElementById('skill-sphere').classList.add('unstable'); 
+                document.getElementById('skill-status').innerText="CRITIQUE !";
+            }
+            if(sLvl >= 100) { 
+                clearInterval(sInt); sInt = null; 
+                alert("SYSTÈME SURCHAUFFÉ : ÉCHEC."); 
+                finalizeSkill();
+            }
+        }, 40);
+    }
+
+    function stopCharge() {
+        if(!sInt) return; clearInterval(sInt); sInt = null;
+        document.getElementById('skill-sphere').classList.remove('unstable');
+        if(sLvl >= 92 && sLvl <= 98) { 
+            charges = Math.min(3, charges+1); 
+            alert("STABILISATION PARFAITE : +1 CHARGE !"); 
+        } else if (sLvl > 98) {
+            alert("TROP TARD... LA CHARGE S'EST DISPURSÉE.");
+        } else {
+            alert("ÉNERGIE INSUFFISANTE POUR LA SYNC.");
+        }
+        finalizeSkill();
+    }
+
+    function finalizeSkill() {
+        lastSkillTime=Date.now(); saveData(); updateEnergySystem(); 
+        document.getElementById('skill-modal').style.display='none';
+        if(timerInterval) clearInterval(timerInterval);
+    }
+
+    function updateSkillUI() { 
+        document.getElementById('skill-bar').style.width = sLvl+'%'; 
+        document.getElementById('skill-sphere').style.transform = `scale(${1+(sLvl/100)})`; 
+    }
 </script>
 </body>
 </html>
+                
+                
