@@ -1,534 +1,890 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SLIBARRE-DEX | FINAL EDITION</title>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SLIBARRE-DEX | FINAL EDITION</title>
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyAl_mBXvFj2UpshnmHFdvWQ4Bp_6Gyf1nw",
-          authDomain: "slibarre-cloud.firebaseapp.com",
-          projectId: "slibarre-cloud",
-          storageBucket: "slibarre-cloud.firebasestorage.app",
-          messagingSenderId: "912759729400",
-          appId: "1:912759729400:web:dc6fce379686c12805df0d"
-        };
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const app = initializeApp(firebaseConfig);
-        window.auth = getAuth(app);
-        window.db = getFirestore(app);
-        window.dbDoc = doc; window.dbSet = setDoc;
+    const app = initializeApp({
+        apiKey:"AIzaSyAl_mBXvFj2UpshnmHFdvWQ4Bp_6Gyf1nw", authDomain:"slibarre-cloud.firebaseapp.com",
+        projectId:"slibarre-cloud", storageBucket:"slibarre-cloud.firebasestorage.app",
+        messagingSenderId:"912759729400", appId:"1:912759729400:web:dc6fce379686c12805df0d"
+    });
+    window.auth = getAuth(app); window.db = getFirestore(app);
+    window.dbDoc = doc; window.dbSet = setDoc; window.dbCollection = collection; window.dbGetDocs = getDocs;
 
-        onAuthStateChanged(window.auth, (user) => {
-            const btn = document.getElementById('auth-trigger-btn');
-            if (user) {
-                btn.innerText = "👤 COMPTE : " + user.email.split('@')[0].toUpperCase();
-                onSnapshot(window.dbDoc(window.db, "users", user.uid), (doc) => {
-                    if(doc.exists()) {
-                        const data = doc.data();
-                        userInventory = data.inventory || {};
-                        doublonsCount = data.doublons || 0;
-                        if(data.charges !== undefined) charges = data.charges;
-                        if(data.lastRecharge !== undefined) lastRecharge = data.lastRecharge;
-                        if(data.lastSkillTime !== undefined) lastSkillTime = data.lastSkillTime;
-                        if(data.themeColor) document.documentElement.style.setProperty('--primary', data.themeColor);
-                        updateGrid();
-                    }
-                });
-            } else {
-                btn.innerText = "🔑 CONNEXION / INSCRIPTION";
-                userInventory = {}; 
-                updateGrid();
-            }
-        });
+    onAuthStateChanged(window.auth, (user) => {
+        const btn = document.getElementById('auth-trigger-btn');
+        if(user) {
+            btn.innerText = "👤 COMPTE : " + user.email.split('@')[0].toUpperCase();
+            onSnapshot(window.dbDoc(window.db,"users",user.uid), (snap) => {
+                if(!snap.exists()) return;
+                const d = snap.data();
+                userInventory = d.inventory||{}; doublonsCount = d.doublons||0;
+                if(d.charges!==undefined) charges=d.charges;
+                if(d.lastRecharge!==undefined) lastRecharge=d.lastRecharge;
+                if(d.lastSkillTime!==undefined) lastSkillTime=d.lastSkillTime;
+                if(d.lastDaily!==undefined) lastDaily=d.lastDaily;
+                if(d.lastWheel!==undefined) lastWheel=d.lastWheel;
+                if(d.successes!==undefined) successes=d.successes;
+                if(d.themeColor) document.documentElement.style.setProperty('--primary',d.themeColor);
+                if(d.themeMode) applyTheme(d.themeMode,false);
+                updateGrid(); checkSuccesses();
+            });
+        } else {
+            btn.innerText="🔑 CONNEXION / INSCRIPTION"; userInventory={}; updateGrid();
+        }
+    });
 
-        window.handleAuth = async () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('pass').value;
-            try {
-                if(isSignup) await createUserWithEmailAndPassword(window.auth, e, p);
-                else await signInWithEmailAndPassword(window.auth, e, p);
-                document.getElementById('auth-modal').style.display = 'none';
-            } catch(err) { alert("Erreur: " + err.message); }
-        };
-    </script>
+    window.handleAuth = async () => {
+        const e=document.getElementById('email').value, p=document.getElementById('pass').value;
+        try {
+            if(isSignup) await createUserWithEmailAndPassword(window.auth,e,p);
+            else await signInWithEmailAndPassword(window.auth,e,p);
+            document.getElementById('auth-modal').style.display='none';
+        } catch(err) { alert("Erreur: "+err.message); }
+    };
+</script>
 
-    <style>
-        :root { --primary: #00d2ff; --bg: #000; }
-        * { -webkit-tap-highlight-color: transparent; outline: none; }
-        body, html { margin: 0; padding: 0; background: var(--bg); color: white; font-family: sans-serif; height: 100vh; overflow: hidden; }
-        #auth-trigger-btn { position: absolute; top: 20px; width: 240px; left: 50%; transform: translateX(-50%); z-index: 10005; background: rgba(0,0,0,0.8); color: white; border: 2px solid var(--primary); padding: 12px; border-radius: 30px; font-weight: bold; font-size: 0.7rem; cursor: pointer; transition: border 0.3s; }
-        #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 20000; display: none; justify-content: center; align-items: center; }
-        .modal-content { background: #111; padding: 30px; border-radius: 25px; border: 1px solid #333; width: 280px; text-align: center; }
-        .modal-content input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #444; color: white; border-radius: 10px; box-sizing: border-box; }
-        #intro-screen { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; }
-        .door { height: 50%; background: #0d0d0d; transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1), border 0.3s; }
-        .door-top { border-bottom: 2px solid var(--primary); }
-        .door-bottom { border-top: 2px solid var(--primary); }
-        #start-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; background: #000; border: 2px solid var(--primary); color: white; font-weight: bold; z-index: 10000; letter-spacing: 5px; cursor: pointer; transition: border 0.3s; }
-        .opened .door-top { transform: translateY(-101%); }
-        .opened .door-bottom { transform: translateY(101%); }
-        #main-site { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
-        
-        /* TABS */
-        .collection-tabs { display: flex; justify-content: center; gap: 10px; margin-top: 55px; margin-bottom: 15px; }
-        .tab-btn { padding: 8px 20px; border-radius: 20px; border: 1px solid #333; background: #111; color: #666; font-size: 0.75rem; font-weight: bold; cursor: pointer; letter-spacing: 2px; transition: all 0.3s; }
-        .tab-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0,210,255,0.1); }
-        .tab-btn.ninja-tab.active { border-color: #ff6b00; color: #ff6b00; background: rgba(255,107,0,0.1); }
+<style>
+:root { --primary:#00d2ff; --bg:#000; --card-bg:#111; --border:#222; }
+body.theme-aqua  { --bg:#000d1a; --card-bg:#001525; --border:#003a55; }
+body.theme-ninja { --bg:#080000; --card-bg:#0f0000; --border:#2a0000; }
+*{-webkit-tap-highlight-color:transparent;outline:none;box-sizing:border-box;}
+body,html{margin:0;padding:0;background:var(--bg);color:white;font-family:sans-serif;height:100vh;overflow:hidden;transition:background 0.5s;}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.45;}
 
-        .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-bottom: 120px; }
-        .card-thumb { background: #111; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #333; position: relative; cursor: pointer; }
-        .lock-icon { position: absolute; top: 5px; right: 8px; opacity: 0.4; font-size: 0.8rem; }
-        #booster-anim { position: fixed; inset: 0; z-index: 9500; display: none; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; flex-direction: column; }
-        .pack-wrapper { width: 260px; height: 420px; position: relative; perspective: 1000px; }
-        .pack-half { position: absolute; width: 100%; height: 50%; background: #222; border: 3px solid #444; display: flex; justify-content: center; align-items: center; font-size: 5rem; }
-        .p-top { top: 0; border-radius: 15px 15px 0 0; }
-        .p-bottom { bottom: 0; border-radius: 0 0 15px 15px; }
-        .ripping .p-top { animation: ripTop 0.8s forwards; }
-        .ripping .p-bottom { animation: ripBottom 0.8s forwards; }
-        @keyframes ripTop { 100% { transform: translateY(-150%) rotateX(-45deg); opacity: 0; } }
-        @keyframes ripBottom { 100% { transform: translateY(150%) rotateX(45deg); opacity: 0; } }
-        #focus-overlay { position: fixed; inset: 0; background: radial-gradient(circle at center, #1a1a1a, #000); display: none; justify-content: center; align-items: center; z-index: 8000; perspective: 1500px; touch-action: none; }
-        .card-3d-wrapper { width: 300px; height: 440px; position: relative; transform-style: preserve-3d; transition: transform 0.1s ease-out; }
-        .reveal-pop { animation: popOut 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes popOut { 0% { transform: scale(0) rotateY(720deg); } 100% { transform: scale(1) rotateY(0deg); } }
-        .card-face { position: absolute; inset: 0; border-radius: 18px; border: 5px solid white; overflow: hidden; background: #000; backface-visibility: hidden; }
-        .card-back { transform: rotateY(180deg); }
-        .specular-shine { position: absolute; inset: -150%; z-index: 4; pointer-events: none; background: linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.2) 55%, transparent 60% ); mix-blend-mode: color-dodge; }
-        .legendary .specular-shine { background: linear-gradient(110deg, transparent 30%, rgba(255, 215, 0, 0.3) 40%, rgba(255, 0, 255, 0.5) 50%, rgba(0, 255, 255, 0.3) 60%, transparent 70% ); mix-blend-mode: screen; }
-        /* EPIC shine */
-        .epic .specular-shine { background: linear-gradient(110deg, transparent 20%, rgba(255,107,0,0.4) 35%, rgba(255,50,50,0.6) 50%, rgba(255,107,0,0.4) 65%, transparent 80% ); mix-blend-mode: screen; }
-        .card-face.legendary { border-color: gold; box-shadow: 0 0 40px rgba(255, 215, 0, 0.5); }
-        /* EPIC border */
-        .card-face.epic { border-color: #ff6b00; box-shadow: 0 0 40px rgba(255,107,0,0.7), 0 0 80px rgba(255,50,0,0.3); animation: epicPulse 1.5s infinite alternate; }
-        @keyframes epicPulse { from { box-shadow: 0 0 40px rgba(255,107,0,0.7); } to { box-shadow: 0 0 70px rgba(255,107,0,1), 0 0 120px rgba(255,50,0,0.5); } }
-        .img-container { position: absolute; inset: 0; z-index: 1; }
-        .img-container img { width: 100%; height: 100%; object-fit: cover; }
-        #pack-selection { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        .pack-item-btn { width: 220px; padding: 20px; margin: 10px; background: #111; border: 2px solid white; border-radius: 15px; cursor: pointer; text-align: center; font-weight: bold; }
-        #pack-opener-area { position: fixed; bottom: 30px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 5000; }
-        #open-pack-btn { background: white; color: black; border: none; padding: 15px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; }
-        #open-pack-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
-        #rarity-menu { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 15000; display: none; justify-content: center; align-items: center; flex-direction: column; }
-        .choice-card { width: 240px; padding: 20px; margin: 10px; border-radius: 15px; text-align: center; border: 2px solid #222; cursor: pointer; }
-        .choice-card.locked { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; }
-        .close-btn { position: absolute; top: 20px; right: 20px; font-size: 3rem; color: white; cursor: pointer; z-index: 8005; }
-        #energy-display { color: var(--primary); font-size: 0.8rem; margin-top: 10px; font-weight: bold; transition: color 0.3s; }
-        #stats-btn { position: absolute; top: 20px; left: 20px; background: #111; color: var(--primary); border: 1px solid var(--primary); padding: 10px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; cursor: pointer; z-index: 10006; display: none; transition: all 0.3s; }
-        #stats-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 25000; display: none; justify-content: center; align-items: center; }
-        .color-picker-container { margin-top: 15px; display: flex; align-items: center; gap: 10px; justify-content: center; }
-        #theme-color { cursor: pointer; border: none; background: none; width: 40px; height: 40px; }
-        #lotto-btn { background: linear-gradient(45deg, #ff0055, #ffcc00); color: black; border: none; padding: 8px 15px; border-radius: 10px; font-weight: bold; font-size: 0.6rem; cursor: pointer; margin-bottom: 10px; animation: glowLotto 1.5s infinite alternate; }
-        @keyframes glowLotto { from { box-shadow: 0 0 5px #ff0055; } to { box-shadow: 0 0 15px #ffcc00; } }
-        #lotto-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 26000; display: none; justify-content: center; align-items: center; }
-        .lotto-option { background: #222; border: 1px solid #444; padding: 15px; border-radius: 15px; margin: 10px 0; cursor: pointer; transition: 0.3s; }
-        .lotto-option:hover { border-color: var(--primary); background: #2a2a2a; }
-        .lotto-option.disabled { opacity: 0.4; cursor: not-allowed; }
-        #slot-container { width: 100px; height: 100px; background: #000; border: 4px solid gold; border-radius: 15px; margin: 20px auto; overflow: hidden; position: relative; display: none;}
-        .slot-reel { position: absolute; top: 0; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; transition: top 2s cubic-bezier(0.45, 0.05, 0.55, 0.95); }
-        .slot-item { height: 100px; line-height: 100px; font-size: 3rem; text-align: center; }
-        #skill-modal { position: fixed; inset: 0; background: #000; z-index: 27000; display: none; justify-content: center; align-items: center; flex-direction: column; overflow: hidden; }
-        .core-sphere { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 50px var(--primary); transition: transform 0.05s linear; position: relative; z-index: 5; }
-        .core-ring { position: absolute; border: 2px solid var(--primary); border-radius: 50%; animation: rot linear infinite; opacity: 0.3; pointer-events: none; }
-        .target-zone { position: absolute; width: 140px; height: 140px; border: 2px dashed rgba(255,255,255,0.2); border-radius: 50%; pointer-events: none; }
-        @keyframes rot { from { transform: rotate(0); } to { transform: rotate(360deg); } }
-        .unstable { animation: extremeShake 0.05s infinite; box-shadow: 0 0 80px #ff0055 !important; background: #ff0055 !important; }
-        @keyframes extremeShake { 0% { transform: translate(3px,3px) scale(1.6); } 50% { transform: translate(-3px,-3px) scale(1.65); } 100% { transform: translate(3px,-3px) scale(1.6); } }
-        #skill-game-btn { background: #000; color: #39ff14; border: 1px solid #39ff14; padding: 5px 12px; border-radius: 8px; font-size: 0.6rem; cursor: pointer; margin-bottom: 5px; }
-        #overload-cooldown-view { display: none; text-align: center; }
-        #overload-game-view { display: none; text-align: center; flex-direction: column; align-items: center; }
+/* INTRO */
+#auth-trigger-btn{position:absolute;top:20px;width:240px;left:50%;transform:translateX(-50%);z-index:10005;background:rgba(0,0,0,0.8);color:white;border:2px solid var(--primary);padding:12px;border-radius:30px;font-weight:bold;font-size:0.7rem;cursor:pointer;}
+#intro-screen{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;}
+.door{height:50%;background:#0d0d0d;transition:transform 0.8s cubic-bezier(0.7,0,0.3,1);}
+.door-top{border-bottom:2px solid var(--primary);} .door-bottom{border-top:2px solid var(--primary);}
+#start-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:20px 40px;background:#000;border:2px solid var(--primary);color:white;font-weight:bold;z-index:10000;letter-spacing:5px;cursor:pointer;}
+.opened .door-top{transform:translateY(-101%);} .opened .door-bottom{transform:translateY(101%);}
 
-        /* NINJA collection styles */
-        .ninja-badge { position: absolute; top: 5px; left: 8px; font-size: 0.55rem; font-weight: bold; color: #ff6b00; letter-spacing: 1px; }
-        .epic-badge { background: linear-gradient(90deg, #ff6b00, #ff2200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    </style>
+/* TOP BTNS */
+#stats-btn{position:fixed;top:20px;left:20px;background:#111;color:var(--primary);border:1px solid var(--primary);padding:8px 10px;border-radius:10px;font-size:0.65rem;font-weight:bold;cursor:pointer;z-index:10006;display:none;}
+#theme-btn{position:fixed;top:20px;right:20px;background:#111;color:#888;border:1px solid #333;padding:8px 10px;border-radius:10px;font-size:0.65rem;font-weight:bold;cursor:pointer;z-index:10006;display:none;}
+
+/* MAIN */
+#main-site{padding:20px;height:100vh;overflow-y:auto;position:relative;z-index:1;}
+#dex-title{text-align:center;letter-spacing:5px;color:#222;margin-top:60px;margin-bottom:0;font-size:1rem;}
+
+/* TABS */
+.tabs{display:flex;justify-content:center;gap:8px;margin:12px 0;}
+.tab-btn{padding:6px 15px;border-radius:20px;border:1px solid #333;background:#111;color:#555;font-size:0.7rem;font-weight:bold;cursor:pointer;transition:all 0.25s;}
+.tab-btn.active{border-color:var(--primary);color:var(--primary);background:rgba(0,210,255,0.08);}
+.tab-btn.ntab.active{border-color:#ff6b00;color:#ff6b00;background:rgba(255,107,0,0.08);}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:140px;}
+.card-thumb{background:var(--card-bg);border-radius:12px;padding:12px;text-align:center;border:1px solid var(--border);position:relative;cursor:pointer;transition:border-color 0.3s;}
+.lock-icon{position:absolute;top:5px;right:8px;opacity:0.35;font-size:0.8rem;}
+.nbadge{position:absolute;top:5px;left:7px;font-size:0.5rem;font-weight:bold;color:#ff6b00;}
+.star-p{position:absolute;background:gold;border-radius:50%;pointer-events:none;animation:twinkle 1.5s ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(0.5);}50%{opacity:1;transform:scale(1.5);}}
+
+/* MODALS */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:20000;display:none;justify-content:center;align-items:center;}
+.mbox{background:#111;padding:22px;border-radius:20px;border:1px solid #2a2a2a;width:300px;max-height:88vh;overflow-y:auto;text-align:center;}
+.mbox input{width:100%;padding:11px;margin:8px 0;background:#000;border:1px solid #333;color:white;border-radius:10px;}
+.mbtn{background:none;border:1px solid #333;color:#888;padding:9px 22px;border-radius:10px;cursor:pointer;margin-top:12px;font-size:0.8rem;}
+.pbtn{background:var(--primary);border:none;border-radius:10px;font-weight:bold;cursor:pointer;padding:12px;width:100%;color:#000;}
+
+/* BOOSTER */
+#booster-anim{position:fixed;inset:0;z-index:9500;display:none;background:rgba(0,0,0,0.95);justify-content:center;align-items:center;}
+.pack-wrapper{width:260px;height:420px;position:relative;perspective:1000px;}
+.pack-half{position:absolute;width:100%;height:50%;background:#222;border:3px solid #444;display:flex;justify-content:center;align-items:center;font-size:5rem;}
+.p-top{top:0;border-radius:15px 15px 0 0;} .p-bottom{bottom:0;border-radius:0 0 15px 15px;}
+.ripping .p-top{animation:ripTop 0.8s forwards;} .ripping .p-bottom{animation:ripBottom 0.8s forwards;}
+@keyframes ripTop{100%{transform:translateY(-150%) rotateX(-45deg);opacity:0;}}
+@keyframes ripBottom{100%{transform:translateY(150%) rotateX(45deg);opacity:0;}}
+
+/* CARD 3D */
+#focus-overlay{position:fixed;inset:0;background:radial-gradient(circle at center,#1a1a1a,#000);display:none;justify-content:center;align-items:center;z-index:8000;perspective:1500px;touch-action:none;}
+.c3d{width:300px;height:440px;position:relative;transform-style:preserve-3d;transition:transform 0.1s ease-out;}
+.reveal-pop{animation:popOut 0.8s cubic-bezier(0.175,0.885,0.32,1.275);}
+@keyframes popOut{0%{transform:scale(0) rotateY(720deg);}100%{transform:scale(1) rotateY(0deg);}}
+.cface{position:absolute;inset:0;border-radius:18px;border:5px solid white;overflow:hidden;background:#000;backface-visibility:hidden;}
+.cback{transform:rotateY(180deg);}
+.shine{position:absolute;inset:-150%;z-index:4;pointer-events:none;background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,0.2) 45%,rgba(255,255,255,0.5) 50%,rgba(255,255,255,0.2) 55%,transparent 60%);mix-blend-mode:color-dodge;}
+.legendary .shine{background:linear-gradient(110deg,transparent 30%,rgba(255,215,0,0.3) 40%,rgba(255,0,255,0.5) 50%,rgba(0,255,255,0.3) 60%,transparent 70%);mix-blend-mode:screen;}
+.epic .shine{background:linear-gradient(110deg,transparent 20%,rgba(255,107,0,0.4) 35%,rgba(255,50,50,0.6) 50%,rgba(255,107,0,0.4) 65%,transparent 80%);mix-blend-mode:screen;}
+.cface.legendary{border-color:gold;box-shadow:0 0 40px rgba(255,215,0,0.5);}
+.cface.epic{border-color:#ff6b00;animation:epicP 1.5s infinite alternate;}
+@keyframes epicP{from{box-shadow:0 0 40px rgba(255,107,0,0.7);}to{box-shadow:0 0 70px rgba(255,107,0,1),0 0 120px rgba(255,50,0,0.5);}}
+.imgc{position:absolute;inset:0;z-index:1;} .imgc img{width:100%;height:100%;object-fit:cover;}
+.card-stars{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
+.cstar{position:absolute;background:gold;border-radius:50%;animation:starFloat linear infinite;}
+@keyframes starFloat{0%{opacity:0;transform:translateY(0) scale(0);}20%{opacity:1;}80%{opacity:1;}100%{opacity:0;transform:translateY(-440px) scale(1.5);}}
+#focus-overlay .close-btn{position:absolute;top:20px;right:20px;font-size:3rem;color:white;cursor:pointer;z-index:8005;}
+
+/* RARITY MENU */
+#rarity-menu{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:15000;display:none;justify-content:center;align-items:center;flex-direction:column;}
+.choice-card{width:240px;padding:16px;margin:7px;border-radius:15px;text-align:center;border:2px solid #222;cursor:pointer;}
+.choice-card.locked{opacity:0.3;filter:grayscale(1);cursor:not-allowed;}
+
+/* PACK SEL */
+#pack-sel{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9000;display:none;flex-direction:column;align-items:center;justify-content:center;}
+.pack-btn{width:220px;padding:18px;margin:8px;background:#111;border:2px solid white;border-radius:15px;cursor:pointer;text-align:center;font-weight:bold;}
+
+/* BOTTOM */
+#bottom-bar{position:fixed;bottom:0;width:100%;background:rgba(0,0,0,0.92);border-top:1px solid #151515;padding:10px 0 14px;display:flex;flex-direction:column;align-items:center;z-index:5000;backdrop-filter:blur(8px);}
+.brow{display:flex;gap:7px;margin-bottom:7px;flex-wrap:wrap;justify-content:center;}
+.bbtn{background:#0a0a0a;border:1px solid #2a2a2a;color:#999;padding:6px 11px;border-radius:9px;font-size:0.6rem;font-weight:bold;cursor:pointer;transition:all 0.2s;}
+.bbtn:hover,.bbtn.lit{border-color:var(--primary);color:var(--primary);}
+#open-pack-btn{background:white;color:black;border:none;padding:11px 32px;border-radius:50px;font-weight:bold;cursor:pointer;}
+#open-pack-btn:disabled{background:#2a2a2a;color:#555;cursor:not-allowed;}
+#energy-display{color:var(--primary);font-size:0.72rem;font-weight:bold;margin-top:5px;}
+#lotto-btn{background:linear-gradient(45deg,#ff0055,#ffcc00);color:black;border:none;padding:6px 11px;border-radius:9px;font-weight:bold;font-size:0.6rem;cursor:pointer;animation:glotto 1.5s infinite alternate;}
+@keyframes glotto{from{box-shadow:0 0 4px #ff0055;}to{box-shadow:0 0 12px #ffcc00;}}
+#daily-btn.lit{border-color:#39ff14 !important;color:#39ff14 !important;animation:dgl 2s infinite alternate;}
+@keyframes dgl{from{box-shadow:0 0 4px #39ff14;}to{box-shadow:0 0 14px #39ff14;}}
+
+/* SKILL */
+#skill-modal{position:fixed;inset:0;background:#000;z-index:27000;display:none;justify-content:center;align-items:center;flex-direction:column;}
+.sphere{width:100px;height:100px;background:var(--primary);border-radius:50%;box-shadow:0 0 50px var(--primary);transition:transform 0.05s linear;position:relative;z-index:5;}
+.cring{position:absolute;border:2px solid var(--primary);border-radius:50%;animation:rot linear infinite;opacity:0.3;pointer-events:none;}
+.tzone{position:absolute;width:140px;height:140px;border:2px dashed rgba(255,255,255,0.2);border-radius:50%;pointer-events:none;}
+@keyframes rot{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+.unstable{animation:shake 0.05s infinite;box-shadow:0 0 80px #ff0055 !important;background:#ff0055 !important;}
+@keyframes shake{0%{transform:translate(3px,3px) scale(1.6);}50%{transform:translate(-3px,-3px) scale(1.65);}100%{transform:translate(3px,-3px) scale(1.6);}}
+#ov-cd{display:none;text-align:center;} #ov-game{display:none;text-align:center;flex-direction:column;align-items:center;}
+
+/* LOTTO */
+#slot-c{width:100px;height:100px;background:#000;border:4px solid gold;border-radius:15px;margin:14px auto;overflow:hidden;position:relative;display:none;}
+.sreel{position:absolute;top:0;left:0;width:100%;display:flex;flex-direction:column;align-items:center;transition:top 2s cubic-bezier(0.45,0.05,0.55,0.95);}
+.sitem{height:100px;line-height:100px;font-size:3rem;text-align:center;}
+
+/* WHEEL */
+#wheel-modal{position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:28000;display:none;justify-content:center;align-items:center;flex-direction:column;}
+#wheel-canvas{border-radius:50%;cursor:pointer;}
+.wptr{font-size:2rem;margin-bottom:-8px;}
+
+/* QUESTS */
+.qitem{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;padding:11px 14px;margin:7px 0;text-align:left;}
+.qbar{height:4px;background:#1a1a1a;border-radius:4px;margin-top:7px;overflow:hidden;}
+.qfill{height:100%;border-radius:4px;transition:width 0.5s;background:var(--primary);}
+.qbadge{background:linear-gradient(45deg,#ff6b00,#ff2200);color:white;font-size:0.5rem;font-weight:bold;padding:3px 7px;border-radius:20px;letter-spacing:1px;}
+
+/* SUCCÈS */
+.aitem{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid #151515;}
+.aitem.locked{opacity:0.28;filter:grayscale(1);}
+
+/* DUEL */
+.drow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #151515;font-size:0.8rem;}
+
+/* TOAST */
+#toast{position:fixed;top:75px;left:50%;transform:translateX(-50%);background:#111;border:1px solid var(--primary);color:white;padding:10px 18px;border-radius:14px;font-size:0.78rem;z-index:99999;display:none;text-align:center;max-width:280px;pointer-events:none;}
+</style>
 </head>
 <body>
+
 <audio id="snd-rip" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
-<button id="stats-btn" onclick="openStats()">📊 STATS</button>
+<canvas id="bg-canvas"></canvas>
+<div id="toast"></div>
+<button id="stats-btn" onclick="openHub('stats')">📊 STATS</button>
+<button id="theme-btn" onclick="openHub('theme')">🎨</button>
+
+<!-- INTRO -->
 <div id="intro-screen">
     <button id="auth-trigger-btn" onclick="toggleAuthModal()">🔑 CONNEXION / INSCRIPTION</button>
     <button id="start-btn" onclick="openDex()">DÉMARRER</button>
     <div class="door door-top"></div>
     <div class="door door-bottom"></div>
 </div>
-<div id="auth-modal">
-    <div class="modal-content">
+
+<!-- AUTH -->
+<div id="auth-modal" class="modal">
+    <div class="mbox">
         <h2 id="auth-title" style="color:var(--primary)">Connexion</h2>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Mot de passe (6+ car.)">
-        <button style="width:100%; padding:12px; background:var(--primary); border:none; border-radius:10px; font-weight:bold; cursor:pointer;" onclick="window.handleAuth()">VALIDER</button>
-        <p onclick="isSignup=!isSignup; document.getElementById('auth-title').innerText=isSignup?'Inscription':'Connexion'" style="font-size:0.7rem; margin-top:15px; cursor:pointer; color:gray; text-decoration: underline;">Changer Mode (Inscrip/Connexion)</p>
-        <button onclick="document.getElementById('auth-modal').style.display='none'" style="background:none; border:none; color:gray; margin-top:10px; cursor:pointer;">Fermer</button>
+        <button class="pbtn" onclick="window.handleAuth()">VALIDER</button>
+        <p onclick="isSignup=!isSignup;document.getElementById('auth-title').innerText=isSignup?'Inscription':'Connexion'" style="font-size:0.7rem;margin-top:14px;cursor:pointer;color:gray;text-decoration:underline;">Changer Mode (Inscrip/Connexion)</p>
+        <button onclick="document.getElementById('auth-modal').style.display='none'" style="background:none;border:none;color:gray;margin-top:8px;cursor:pointer;">Fermer</button>
     </div>
 </div>
-<div id="stats-modal">
-    <div class="modal-content">
-        <h2 style="color:var(--primary)">STATISTIQUES</h2>
-        <div id="stats-content" style="text-align: left; font-size: 0.9rem; line-height: 1.6;"></div>
-        <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
-        <div class="color-picker-container">
-            <span style="font-size:0.8rem">COULEUR INTERFACE :</span>
-            <input type="color" id="theme-color" onchange="changeInterfaceColor(this.value)">
+
+<!-- HUB (Stats / Succès / Duel / Thème) -->
+<div id="hub-modal" class="modal">
+    <div class="mbox" style="width:310px;">
+        <div class="tabs" style="margin-top:0;flex-wrap:wrap;">
+            <button class="tab-btn active" id="ht-stats"   onclick="switchHubTab('stats')">📊</button>
+            <button class="tab-btn" id="ht-ach"    onclick="switchHubTab('ach')">🏆</button>
+            <button class="tab-btn" id="ht-duel"   onclick="switchHubTab('duel')">⚔️</button>
+            <button class="tab-btn" id="ht-theme"  onclick="switchHubTab('theme')">🎨</button>
         </div>
-        <button onclick="document.getElementById('stats-modal').style.display='none'" style="background:none; border:none; color:var(--primary); margin-top:20px; cursor:pointer; font-weight:bold;">RETOUR</button>
+        <div id="hv-stats">
+            <div id="stats-content" style="text-align:left;font-size:0.85rem;line-height:1.9;"></div>
+            <div style="margin-top:14px;display:flex;align-items:center;gap:10px;justify-content:center;">
+                <span style="font-size:0.75rem;">COULEUR :</span>
+                <input type="color" id="theme-color" onchange="changeInterfaceColor(this.value)" style="cursor:pointer;border:none;background:none;width:36px;height:36px;">
+            </div>
+        </div>
+        <div id="hv-ach" style="display:none;"><div id="ach-list"></div></div>
+        <div id="hv-duel" style="display:none;">
+            <h3 style="color:var(--primary);margin-bottom:5px;font-size:0.95rem;">⚔️ CLASSEMENT DUEL</h3>
+            <p style="font-size:0.68rem;color:gray;margin-bottom:12px;">Score : STD=1pt · LGD=3pts · EPC=5pts</p>
+            <div id="duel-board"></div>
+            <button class="mbtn" onclick="loadDuel()" style="font-size:0.72rem;">🔄 Actualiser</button>
+        </div>
+        <div id="hv-theme" style="display:none;">
+            <h3 style="margin-bottom:14px;">AMBIANCE</h3>
+            <div onclick="applyTheme('aqua',true)" style="border:2px solid #00d2ff;background:rgba(0,210,255,0.05);border-radius:14px;padding:14px;margin:8px 0;cursor:pointer;">
+                💧 MODE AQUA<br><span style="font-size:0.65rem;color:#00d2ff;">Bulles flottantes bleues</span>
+            </div>
+            <div onclick="applyTheme('ninja',true)" style="border:2px solid #ff3300;background:rgba(255,50,0,0.05);border-radius:14px;padding:14px;margin:8px 0;cursor:pointer;">
+                🥷 MODE NINJA<br><span style="font-size:0.65rem;color:#ff3300;">Shurikens & rouge sombre</span>
+            </div>
+            <div onclick="applyTheme('default',true)" style="border:2px solid #333;border-radius:14px;padding:14px;margin:8px 0;cursor:pointer;">
+                ⚫ MODE DEFAULT<br><span style="font-size:0.65rem;color:#555;">Noir pur</span>
+            </div>
+        </div>
+        <button class="mbtn" onclick="document.getElementById('hub-modal').style.display='none'">RETOUR</button>
     </div>
 </div>
+
+<!-- MAIN -->
 <div id="main-site">
-    <h2 style="text-align:center; letter-spacing: 5px; color:#222; margin-top: 60px;">SLIBARRE-DEX</h2>
-    <div class="collection-tabs">
+    <h2 id="dex-title">SLIBARRE-DEX</h2>
+    <div class="tabs">
         <button class="tab-btn active" id="tab-classic" onclick="switchTab('classic')">⚡ CLASSIQUE</button>
-        <button class="tab-btn ninja-tab" id="tab-ninja" onclick="switchTab('ninja')">🥷 NINJA</button>
+        <button class="tab-btn ntab" id="tab-ninja" onclick="switchTab('ninja')">🥷 NINJA</button>
     </div>
-    <div class="pokedex-grid" id="grid"></div>
+    <div class="grid" id="grid"></div>
 </div>
-<div id="pack-selection">
-    <h2 id="pack-select-title">CHOISIR UN PACK</h2>
-    <div id="pack-classic-options">
-        <div class="pack-item-btn" onclick="preparePack('💧', 'classic')">💧 PACK AQUA</div>
-        <div class="pack-item-btn" style="border-color: gold;" onclick="preparePack('👑', 'classic')">👑 PACK ELITE</div>
+
+<!-- PACK SELECTION -->
+<div id="pack-sel">
+    <h2 id="pack-sel-title">CHOISIR UN PACK</h2>
+    <div id="ps-classic">
+        <div class="pack-btn" onclick="preparePack('💧','classic')">💧 PACK AQUA</div>
+        <div class="pack-btn" style="border-color:gold;" onclick="preparePack('👑','classic')">👑 PACK ELITE</div>
     </div>
-    <div id="pack-ninja-options" style="display:none;">
-        <div class="pack-item-btn" style="border-color:#ff6b00;" onclick="preparePack('🥷', 'ninja')">🥷 PACK NINJA</div>
-        <div class="pack-item-btn" style="border-color:#ff2200;" onclick="preparePack('🔥', 'ninja')">🔥 PACK SHADOW</div>
+    <div id="ps-ninja" style="display:none;">
+        <div class="pack-btn" style="border-color:#ff6b00;" onclick="preparePack('🥷','ninja')">🥷 PACK NINJA</div>
+        <div class="pack-btn" style="border-color:#ff2200;" onclick="preparePack('🔥','ninja')">🔥 PACK SHADOW</div>
     </div>
-    <button onclick="document.getElementById('pack-selection').style.display='none'" style="background:none; border:none; color:white; margin-top:20px; cursor:pointer;">RETOUR</button>
+    <button onclick="document.getElementById('pack-sel').style.display='none'" style="background:none;border:none;color:white;margin-top:18px;cursor:pointer;">RETOUR</button>
 </div>
+
+<!-- BOOSTER ANIM -->
 <div id="booster-anim">
     <div class="pack-wrapper" id="pack-wrap" onclick="triggerRip()">
         <div class="pack-half p-top" id="half-t"></div>
         <div class="pack-half p-bottom" id="half-b"></div>
     </div>
 </div>
+
+<!-- RARITY MENU -->
 <div id="rarity-menu">
     <h2 id="menu-name">NOM</h2>
-    <div id="choice-standard" class="choice-card"><h4>STANDARD</h4><span id="status-s">LOCKED</span></div>
-    <div id="choice-epic" class="choice-card" style="display:none;"><h4 style="color:#ff6b00">⚡ ÉPIQUE</h4><span id="status-e">LOCKED</span></div>
-    <div id="choice-legendary" class="choice-card"><h4>✦ LÉGENDAIRE</h4><span id="status-l">LOCKED</span></div>
-    <button onclick="document.getElementById('rarity-menu').style.display='none'" style="margin-top:30px; background:none; border:1px solid #444; color:gray; padding:10px 25px; border-radius:10px; cursor:pointer;">RETOUR</button>
+    <div id="choice-std"  class="choice-card"><h4>STANDARD</h4><span id="st-s">LOCKED</span></div>
+    <div id="choice-epic" class="choice-card" style="display:none;"><h4 style="color:#ff6b00">⚡ ÉPIQUE</h4><span id="st-e">LOCKED</span></div>
+    <div id="choice-lgd"  class="choice-card"><h4>✦ LÉGENDAIRE</h4><span id="st-l">LOCKED</span></div>
+    <button onclick="document.getElementById('rarity-menu').style.display='none'" class="mbtn">RETOUR</button>
 </div>
+
+<!-- CARD 3D -->
 <div id="focus-overlay">
     <span class="close-btn" onclick="closeCard()">&times;</span>
-    <div class="card-3d-wrapper" id="card-3d">
-        <div class="card-face card-front" id="front-content"></div>
-        <div class="card-face card-back" id="back-content"></div>
+    <div class="c3d" id="card-3d">
+        <div class="cface" id="front-content"></div>
+        <div class="cface cback" id="back-content"></div>
     </div>
 </div>
-<div id="lotto-modal">
-    <div class="modal-content" id="lotto-inner">
-        <h2 style="color:#ffcc00; margin-bottom: 5px;">🎰 LOTERIE 🎰</h2>
-        <div id="slot-container"><div class="slot-reel" id="reel"></div></div>
+
+<!-- LOTTO -->
+<div id="lotto-modal" class="modal">
+    <div class="mbox">
+        <h2 style="color:#ffcc00;margin-bottom:5px;">🎰 LOTERIE 🎰</h2>
+        <div id="slot-c"><div class="sreel" id="reel"></div></div>
         <div id="lotto-ui">
-            <p style="font-size:0.7rem; color:gray; margin-bottom:20px;">Misez pour gagner 7 Boosters !</p>
-            <div id="opt-1" class="lotto-option" onclick="playLotto(1, 0.10)"><div>Miser 1 ⚡</div><div style="font-size:0.8rem; color:#ff0055">10% Chance</div></div>
-            <div id="opt-2" class="lotto-option" onclick="playLotto(2, 0.25)"><div>Miser 2 ⚡</div><div style="font-size:0.8rem; color:#ff0055">25% Chance</div></div>
-            <div id="opt-3" class="lotto-option" onclick="playLotto(3, 0.35)"><div>Miser 3 ⚡</div><div style="font-size:0.8rem; color:#ff0055">35% Chance</div></div>
-            <button onclick="document.getElementById('lotto-modal').style.display='none'" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">Fermer</button>
+            <p style="font-size:0.7rem;color:gray;margin-bottom:12px;">Misez des charges pour gagner !</p>
+            <div id="lo1" class="qitem" onclick="playLotto(1,0.10)" style="cursor:pointer;"><b>Miser 1 ⚡ → +7 charges</b><div style="font-size:0.7rem;color:#ff0055;margin-top:2px;">10% de chance</div></div>
+            <div id="lo2" class="qitem" onclick="playLotto(2,0.25)" style="cursor:pointer;"><b>Miser 2 ⚡ → +7 charges</b><div style="font-size:0.7rem;color:#ff0055;margin-top:2px;">25% de chance</div></div>
+            <div id="lo3" class="qitem" onclick="playLotto(3,0.35)" style="cursor:pointer;"><b>Miser 3 ⚡ → +7 charges</b><div style="font-size:0.7rem;color:#ff0055;margin-top:2px;">35% de chance</div></div>
+            <button class="mbtn" onclick="document.getElementById('lotto-modal').style.display='none'">Fermer</button>
         </div>
     </div>
 </div>
 
+<!-- SKILL MODAL -->
 <div id="skill-modal">
-    <div id="overload-cooldown-view">
+    <div id="ov-cd">
         <h2 style="color:#ff0055">OVERLOAD EN CHARGE</h2>
-        <div id="ov-timer" style="font-size: 2rem; margin: 20px 0; font-family: monospace;">00:00:00</div>
-        <p style="color:gray; font-size: 0.8rem;">Le réacteur doit refroidir avant une nouvelle injection.</p>
-        <button onclick="document.getElementById('skill-modal').style.display='none'" style="margin-top:30px; background:none; border:1px solid #444; color:white; padding:10px 20px; border-radius:10px;">RETOUR</button>
+        <div id="ov-timer" style="font-size:2rem;margin:20px 0;font-family:monospace;">00:00:00</div>
+        <p style="color:gray;font-size:0.8rem;">Le réacteur refroidit.</p>
+        <button onclick="document.getElementById('skill-modal').style.display='none'" class="mbtn">RETOUR</button>
     </div>
-    <div id="overload-game-view">
-        <h2 id="skill-status" style="margin-bottom:5px; font-size:0.9rem">STABILISATION REQUISE</h2>
-        <p style="font-size:0.6rem; color:gray; margin-bottom:20px;">Relâche entre 92% et 98%</p>
-        <div style="display:flex; justify-content:center; align-items:center; height:220px; position:relative;">
-            <div class="target-zone"></div>
-            <div class="core-ring" style="width:180px; height:180px; animation-duration:3s;"></div>
-            <div class="core-ring" style="width:120px; height:120px; animation-duration:1.5s; animation-direction:reverse;"></div>
-            <div class="core-sphere" id="skill-sphere" 
-                 onmousedown="startCharge()" ontouchstart="startCharge()" 
-                 onmouseup="stopCharge()" ontouchend="stopCharge()" 
-                 onmouseleave="stopCharge()"></div>
+    <div id="ov-game">
+        <h2 id="skill-status" style="margin-bottom:5px;font-size:0.9rem">STABILISATION REQUISE</h2>
+        <p style="font-size:0.6rem;color:gray;margin-bottom:20px;">Relâche entre 92% et 98%</p>
+        <div style="display:flex;justify-content:center;align-items:center;height:220px;position:relative;">
+            <div class="tzone"></div>
+            <div class="cring" style="width:180px;height:180px;animation-duration:3s;"></div>
+            <div class="cring" style="width:120px;height:120px;animation-duration:1.5s;animation-direction:reverse;"></div>
+            <div class="sphere" id="skill-sphere" onmousedown="startCharge()" ontouchstart="startCharge()" onmouseup="stopCharge()" ontouchend="stopCharge()" onmouseleave="stopCharge()"></div>
         </div>
-        <div style="width:240px; height:6px; background:#111; margin-top:30px; border-radius:10px; overflow:hidden; border:1px solid #222;">
-            <div id="skill-bar" style="height:100%; width:0; background:linear-gradient(90deg, var(--primary), #ff0055); transition: none;"></div>
+        <div style="width:240px;height:6px;background:#111;margin-top:28px;border-radius:10px;overflow:hidden;border:1px solid #222;">
+            <div id="skill-bar" style="height:100%;width:0;background:linear-gradient(90deg,var(--primary),#ff0055);transition:none;"></div>
         </div>
-        <button onclick="document.getElementById('skill-modal').style.display='none'" style="margin-top:40px; background:none; border:none; color:gray; font-size:0.7rem">ABANDONNER</button>
+        <button onclick="document.getElementById('skill-modal').style.display='none'" style="margin-top:28px;background:none;border:none;color:gray;font-size:0.7rem;">ABANDONNER</button>
     </div>
 </div>
 
-<div id="pack-opener-area">
-    <button id="skill-game-btn" onclick="openSkill()">⚡ OVERLOAD (FREE)</button>
-    <button id="lotto-btn" onclick="openLottoMenu()">🎰 LOTERIE DE LA CHANCE</button>
-    <button id="open-pack-btn" onclick="openPackSelection()">OBTENIR DES CARTES</button>
-    <div id="energy-display">CHARGES : <span id="charge-count">3</span>/3 <span id="timer-display" style="font-weight:normal; opacity:0.6; font-size:0.7rem"></span></div>
+<!-- QUÊTES -->
+<div id="quests-modal" class="modal">
+    <div class="mbox">
+        <h2 style="color:#ffcc00;margin-bottom:4px;">⚡ QUÊTES FLASH</h2>
+        <p style="font-size:0.68rem;color:gray;margin-bottom:12px;">Défis pour gagner des récompenses</p>
+        <div id="quests-list"></div>
+        <button class="mbtn" onclick="document.getElementById('quests-modal').style.display='none'">RETOUR</button>
+    </div>
+</div>
+
+<!-- WHEEL -->
+<div id="wheel-modal">
+    <h2 style="margin-bottom:4px;color:var(--primary)">🎡 ROUE DE LA FORTUNE</h2>
+    <p id="wheel-status" style="font-size:0.72rem;color:gray;margin-bottom:12px;"></p>
+    <div class="wptr">▼</div>
+    <canvas id="wheel-canvas" width="280" height="280"></canvas>
+    <button id="wheel-spin-btn" onclick="spinWheel()" style="margin-top:18px;background:var(--primary);border:none;color:#000;padding:11px 28px;border-radius:30px;font-weight:bold;cursor:pointer;">TOURNER</button>
+    <button class="mbtn" onclick="document.getElementById('wheel-modal').style.display='none'">RETOUR</button>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="bottom-bar">
+    <div class="brow">
+        <button class="bbtn" onclick="openSkill()">⚡ OVERLOAD</button>
+        <button class="bbtn" id="daily-btn" onclick="claimDaily()">🌅 BONUS JOUR</button>
+        <button class="bbtn" onclick="openWheel()">🎡 ROUE</button>
+        <button id="lotto-btn" onclick="openLottoMenu()">🎰 LOTERIE</button>
+        <button class="bbtn" onclick="openQuests()">🎯 QUÊTES</button>
+    </div>
+    <button id="open-pack-btn" onclick="openPackSel()">OBTENIR DES CARTES</button>
+    <div id="energy-display" style="margin-top:5px;">CHARGES : <span id="charge-count">3</span>/3 <span id="timer-display" style="font-weight:normal;opacity:0.6;font-size:0.68rem;"></span></div>
 </div>
 
 <script>
-    let userInventory = {}; let doublonsCount = 0; let isSignup = false; let charges = 3; let lastRecharge = Date.now(); let lastSkillTime = 0; const COOLDOWN = 3600000;
-    let timerInterval = null;
-    let currentTab = 'classic';
-    let currentPackCollection = 'classic';
+// ===== STATE =====
+let userInventory={}, doublonsCount=0, isSignup=false;
+let charges=3, lastRecharge=Date.now(), lastSkillTime=0;
+let lastDaily=0, lastWheel=0, successes={};
+let timerInterval=null, currentTab='classic', currentPackCollection='classic';
+let currentTheme='default', packOpenTimestamps=[];
+const COOLDOWN=3600000, SKILL_CD=7200000, DAY=86400000;
 
-    function updateEnergySystem() {
-        const now = Date.now(); const diff = now - lastRecharge;
-        if (charges < 3 && diff >= COOLDOWN) { charges = Math.min(3, charges + Math.floor(diff / COOLDOWN)); lastRecharge = now; saveData(); }
-        document.getElementById('charge-count').innerText = charges;
-        document.getElementById('open-pack-btn').disabled = charges <= 0;
-        if (charges < 3) {
-            const rem = COOLDOWN - (now - lastRecharge);
-            document.getElementById('timer-display').innerText = `(+1 dans ${Math.floor(rem/60000)}m ${Math.floor((rem%60000)/1000)}s)`;
-        } else { document.getElementById('timer-display').innerText = ""; }
+// ===== DATA =====
+const members=[
+    {id:'malo',   name:'malo',   icon:'💧',color:'#00d2ff',desc:'Maître des flux.'},
+    {id:'lilian', name:'lilian', icon:'👁️',color:'#bd00ff',desc:"L'Observateur."},
+    {id:'charli', name:'charli', icon:'🍕',color:'#ffcc00',desc:'Le Gourmet.'},
+    {id:'arthur', name:'arthur', icon:'⛩️',color:'#ff3e3e',desc:'Le Shogun.'},
+    {id:'danny',  name:'danny',  icon:'🎮',color:'#39ff14',desc:'Le Gamer.'},
+    {id:'groupe', name:'groupe', icon:'👥',color:'#ffffff',desc:'La bande réunie.',isGroupe:true}
+];
+const ninjaMembers=[
+    {id:'ninja_malo',  name:'malo',  icon:'🌊',color:'#00d2ff',desc:"Lame de l'Eau."},
+    {id:'ninja_lilian',name:'lilian',icon:'👁️',color:'#bd00ff',desc:'Œil de la Nuit.'},
+    {id:'ninja_charli',name:'charli',icon:'🍜',color:'#ffcc00',desc:'Cuisinier Fantôme.'},
+    {id:'ninja_arthur',name:'arthur',icon:'⛩️',color:'#ff3e3e',desc:'Seigneur de Guerre.'},
+    {id:'ninja_danny', name:'danny', icon:'🎮',color:'#39ff14',desc:'Hacker Silencieux.'}
+];
+
+const ACHIEVEMENTS=[
+    {id:'first_card',  icon:'🃏',name:'Première Carte',   desc:'Ouvre ton premier pack',           check:()=>Object.values(userInventory).some(v=>v.standard||v.legendary||v.epic)},
+    {id:'first_lgd',   icon:'✦', name:'Premier Légendaire',desc:'Obtiens 1 carte Légendaire',       check:()=>Object.values(userInventory).some(v=>v.legendary)},
+    {id:'first_epic',  icon:'⚡', name:'Premier Épique',   desc:'Obtiens 1 carte Épique Ninja',     check:()=>Object.values(userInventory).some(v=>v.epic)},
+    {id:'collector5',  icon:'📦',name:'Collectionneur',   desc:'Possède 5 cartes uniques',          check:()=>countOwned()>=5},
+    {id:'all_classic', icon:'⚡', name:'Maître Classique', desc:'Toutes les cartes Classiques STD', check:()=>members.every(m=>userInventory[m.id]?.standard)},
+    {id:'all_ninja',   icon:'🥷',name:'Ombre Parfaite',   desc:'Toutes les cartes Ninja STD',      check:()=>ninjaMembers.every(m=>userInventory[m.id]?.standard)},
+    {id:'ninja_badge', icon:'🏅',name:'Badge Ninja Flash', desc:'3 packs Ninja en 10 min',          check:()=>!!successes.ninja_badge},
+    {id:'daily3',      icon:'🌅',name:'Fidèle',            desc:'Bonus quotidien 3 fois',            check:()=>(successes.daily_count||0)>=3},
+    {id:'wheel_win',   icon:'🎡',name:'Chanceux',          desc:'Remporte un prix à la roue',        check:()=>!!successes.wheel_win},
+    {id:'overload_ok', icon:'🔋',name:'Synchronisé',       desc:'Overload parfaite',                 check:()=>!!successes.overload_ok},
+];
+
+// ===== SAVE =====
+async function saveData(){
+    if(!window.auth.currentUser)return;
+    await window.dbSet(window.dbDoc(window.db,"users",window.auth.currentUser.uid),{
+        inventory:userInventory,doublons:doublonsCount,charges,lastRecharge,
+        lastSkillTime,lastDaily,lastWheel,successes,
+        themeColor:getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+        themeMode:currentTheme,packScore:calcScore()
+    },{merge:true});
+}
+
+function calcScore(){
+    let s=0;
+    [...members,...ninjaMembers].forEach(m=>{
+        const inv=userInventory[m.id]||{};
+        if(inv.standard)s+=1; if(inv.legendary)s+=3; if(inv.epic)s+=5;
+    });
+    return s;
+}
+function countOwned(){
+    let n=0;
+    [...members,...ninjaMembers].forEach(m=>{
+        const inv=userInventory[m.id]||{};
+        if(inv.standard)n++; if(inv.legendary)n++; if(inv.epic)n++;
+    });
+    return n;
+}
+
+// ===== ENERGY =====
+function updateEnergySystem(){
+    const now=Date.now(),diff=now-lastRecharge;
+    if(charges<3&&diff>=COOLDOWN){charges=Math.min(3,charges+Math.floor(diff/COOLDOWN));lastRecharge=now;saveData();}
+    document.getElementById('charge-count').innerText=charges;
+    document.getElementById('open-pack-btn').disabled=charges<=0;
+    if(charges<3){
+        const rem=COOLDOWN-(now-lastRecharge);
+        document.getElementById('timer-display').innerText=`(+1 dans ${Math.floor(rem/60000)}m ${Math.floor((rem%60000)/1000)}s)`;
+    } else { document.getElementById('timer-display').innerText=''; }
+    const canDaily=(Date.now()-lastDaily)>=DAY;
+    document.getElementById('daily-btn').classList.toggle('lit',canDaily);
+}
+setInterval(updateEnergySystem,1000);
+
+// ===== INTRO / AUTH =====
+function toggleAuthModal(){
+    if(window.auth.currentUser){if(confirm("Déconnexion ?"))window.auth.signOut();}
+    else document.getElementById('auth-modal').style.display='flex';
+}
+function openDex(){
+    ['auth-trigger-btn','start-btn'].forEach(id=>document.getElementById(id).style.display='none');
+    ['stats-btn','theme-btn'].forEach(id=>document.getElementById(id).style.display='block');
+    document.getElementById('intro-screen').classList.add('opened');
+    setTimeout(()=>document.getElementById('intro-screen').style.display='none',800);
+    updateGrid();
+}
+
+// ===== THEME =====
+let bgAnimId=null;
+function applyTheme(mode,doSave){
+    currentTheme=mode;
+    document.body.className=mode!=='default'?'theme-'+mode:'';
+    if(mode==='aqua'){document.documentElement.style.setProperty('--primary','#00d2ff');startBg('aqua');}
+    else if(mode==='ninja'){document.documentElement.style.setProperty('--primary','#ff3300');startBg('ninja');}
+    else{document.documentElement.style.setProperty('--primary','#00d2ff');stopBg();}
+    if(doSave){saveData();document.getElementById('hub-modal').style.display='none';}
+}
+function stopBg(){cancelAnimationFrame(bgAnimId);bgAnimId=null;const c=document.getElementById('bg-canvas');c.getContext('2d').clearRect(0,0,c.width,c.height);}
+function startBg(mode){
+    stopBg();
+    const canvas=document.getElementById('bg-canvas');
+    canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+    const ctx=canvas.getContext('2d'),pts=[];
+    if(mode==='aqua'){
+        for(let i=0;i<28;i++)pts.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:3+Math.random()*12,vy:-(0.3+Math.random()*0.5),a:0.1+Math.random()*0.25});
+        function draw(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            pts.forEach(p=>{p.y+=p.vy;if(p.y<-20)p.y=canvas.height+20;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.strokeStyle=`rgba(0,210,255,${p.a})`;ctx.lineWidth=1.5;ctx.stroke();});
+            bgAnimId=requestAnimationFrame(draw);
+        }
+        draw();
+    } else if(mode==='ninja'){
+        for(let i=0;i<14;i++)pts.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*1.4,vy:(Math.random()-0.5)*1.4,rot:Math.random()*360,rv:2+Math.random()*3,a:0.07+Math.random()*0.12,sz:10+Math.random()*18});
+        function dshuriken(cx,cy,sz,rot,a){
+            ctx.save();ctx.translate(cx,cy);ctx.rotate(rot*Math.PI/180);ctx.globalAlpha=a;ctx.fillStyle='#ff3300';
+            for(let i=0;i<4;i++){ctx.rotate(Math.PI/2);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(sz*.4,sz*.4);ctx.lineTo(0,sz);ctx.lineTo(-sz*.4,sz*.4);ctx.closePath();ctx.fill();}
+            ctx.restore();
+        }
+        function draw(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.rv;if(p.x<-50)p.x=canvas.width+50;if(p.x>canvas.width+50)p.x=-50;if(p.y<-50)p.y=canvas.height+50;if(p.y>canvas.height+50)p.y=-50;dshuriken(p.x,p.y,p.sz,p.rot,p.a);});
+            bgAnimId=requestAnimationFrame(draw);
+        }
+        draw();
     }
-    setInterval(updateEnergySystem, 1000);
+}
 
-    const members = [
-        { id: 'malo', name: 'malo', icon: '💧', color: '#00d2ff', desc: 'Maître des flux.' },
-        { id: 'lilian', name: 'lilian', icon: '👁️', color: '#bd00ff', desc: 'L\'Observateur.' },
-        { id: 'charli', name: 'charli', icon: '🍕', color: '#ffcc00', desc: 'Le Gourmet.' },
-        { id: 'arthur', name: 'arthur', icon: '⛩️', color: '#ff3e3e', desc: 'Le Shogun.' },
-        { id: 'danny', name: 'danny', icon: '🎮', color: '#39ff14', desc: 'Le Gamer.' }
-    ];
+// ===== GRID =====
+function switchTab(tab){
+    currentTab=tab;
+    document.getElementById('tab-classic').classList.toggle('active',tab==='classic');
+    document.getElementById('tab-ninja').classList.toggle('active',tab==='ninja');
+    updateGrid();
+}
+function updateGrid(){
+    const grid=document.getElementById('grid');grid.innerHTML='';
+    const list=currentTab==='ninja'?ninjaMembers:members;
+    list.forEach(m=>{
+        const isNinja=currentTab==='ninja',inv=userInventory[m.id]||{};
+        const hasAny=inv.standard||inv.legendary||(isNinja&&inv.epic);
+        const div=document.createElement('div');div.className='card-thumb';div.style.borderColor=hasAny?m.color:'#222';
+        let badges='';
+        if(inv.standard)badges+=`<span style="font-size:0.5rem;color:#aaa;display:block">• STD</span>`;
+        if(isNinja&&inv.epic)badges+=`<span style="font-size:0.5rem;color:#ff6b00;display:block">⚡ EPC</span>`;
+        if(inv.legendary)badges+=`<span style="font-size:0.5rem;color:gold;display:block">✦ LGD</span>`;
+        div.innerHTML=`${!hasAny?'<span class="lock-icon">🔒</span>':''}${isNinja?'<span class="nbadge">NINJA</span>':''}<div style="font-size:2.2rem;margin:3px 0;">${m.icon}</div><div style="font-weight:bold;font-size:0.78rem;color:${m.color}">${m.name.toUpperCase()}</div><div style="margin-top:2px;">${badges}</div>`;
+        if(inv.legendary){
+            for(let i=0;i<5;i++){const s=document.createElement('div');s.className='star-p';const sz=2+Math.random()*3;s.style.cssText=`width:${sz}px;height:${sz}px;left:${10+Math.random()*80}%;top:${10+Math.random()*80}%;animation-delay:${Math.random()*2}s;animation-duration:${1+Math.random()}s;`;div.appendChild(s);}
+        }
+        div.onclick=()=>openRarityMenu(m,isNinja);
+        grid.appendChild(div);
+    });
+}
 
-    // NINJA collection — raretés: standard, legendary, epic
-    const ninjaMembers = [
-        { id: 'ninja_malo', name: 'malo', icon: '🌊', color: '#00d2ff', desc: 'Lame de l\'Eau.', collection: 'ninja' },
-        { id: 'ninja_lilian', name: 'lilian', icon: '👁️', color: '#bd00ff', desc: 'Œil de la Nuit.', collection: 'ninja' },
-        { id: 'ninja_charli', name: 'charli', icon: '🍜', color: '#ffcc00', desc: 'Cuisinier Fantôme.', collection: 'ninja' },
-        { id: 'ninja_arthur', name: 'arthur', icon: '⛩️', color: '#ff3e3e', desc: 'Seigneur de Guerre.', collection: 'ninja' },
-        { id: 'ninja_danny', name: 'danny', icon: '🎮', color: '#39ff14', desc: 'Hacker Silencieux.', collection: 'ninja' }
-    ];
+// ===== HUB =====
+function openHub(tab){
+    document.getElementById('hub-modal').style.display='flex';
+    switchHubTab(tab||'stats');
+}
+function switchHubTab(tab){
+    ['stats','ach','duel','theme'].forEach(t=>{
+        document.getElementById('hv-'+t).style.display=t===tab?'block':'none';
+        document.getElementById('ht-'+t).classList.toggle('active',t===tab);
+    });
+    if(tab==='stats')renderStats();
+    if(tab==='ach')renderAch();
+    if(tab==='duel')loadDuel();
+}
+function renderStats(){
+    const total=members.length*2+ninjaMembers.length*3,owned=countOwned();
+    document.getElementById('stats-content').innerHTML=
+        `<b>Progression :</b> ${Math.round((owned/total)*100)}% (${owned}/${total})<br>
+         <b>Score Duel :</b> ${calcScore()} pts<br>
+         <b>Doublons :</b> ${doublonsCount}/5<br>
+         <b>Taux LGD :</b> 5% &nbsp;|&nbsp; <b>Taux EPC :</b> 10%`;
+}
+function renderAch(){
+    const el=document.getElementById('ach-list');el.innerHTML='';
+    ACHIEVEMENTS.forEach(a=>{
+        const ok=a.check();
+        const d=document.createElement('div');d.className='aitem'+(ok?'':' locked');
+        d.innerHTML=`<div style="font-size:1.4rem;width:36px;text-align:center;">${a.icon}</div><div><div style="font-size:0.82rem;font-weight:bold;">${a.name}</div><div style="font-size:0.68rem;color:#555;">${a.desc}</div></div>${ok?'<div style="margin-left:auto;color:#39ff14;font-size:0.72rem;font-weight:bold;">✓</div>':''}`;
+        el.appendChild(d);
+    });
+}
+function changeInterfaceColor(color){document.documentElement.style.setProperty('--primary',color);saveData();}
 
-    function toggleAuthModal() { if(window.auth.currentUser) { if(confirm("Déconnexion ?")) window.auth.signOut(); } else { document.getElementById('auth-modal').style.display = 'flex'; } }
-
-    function switchTab(tab) {
-        currentTab = tab;
-        document.getElementById('tab-classic').classList.toggle('active', tab === 'classic');
-        document.getElementById('tab-ninja').classList.toggle('active', tab === 'ninja');
-        updateGrid();
-    }
-
-    function openDex() {
-        document.getElementById('auth-trigger-btn').style.display = 'none'; document.getElementById('start-btn').style.display = 'none'; document.getElementById('stats-btn').style.display = 'block';
-        document.getElementById('intro-screen').classList.add('opened'); setTimeout(() => { document.getElementById('intro-screen').style.display = 'none'; }, 800);
-        updateGrid();
-    }
-
-    function updateGrid() {
-        const grid = document.getElementById('grid'); grid.innerHTML = '';
-        const list = currentTab === 'ninja' ? ninjaMembers : members;
-        list.forEach(m => {
-            const isNinja = currentTab === 'ninja';
-            const inv = userInventory[m.id] || {};
-            const hasAny = inv.standard || inv.legendary || (isNinja && inv.epic);
-            const div = document.createElement('div'); div.className = 'card-thumb'; div.style.borderColor = hasAny ? m.color : '#222';
-            let badges = '';
-            if(inv.standard) badges += `<span style="font-size:0.5rem; color:#aaa; display:block">• STD</span>`;
-            if(inv.legendary) badges += `<span style="font-size:0.5rem; color:gold; display:block">✦ LGD</span>`;
-            if(isNinja && inv.epic) badges += `<span style="font-size:0.5rem; color:#ff6b00; display:block">⚡ EPC</span>`;
-            div.innerHTML = `${!hasAny ? '<span class="lock-icon">🔒</span>' : ''}${isNinja ? '<span class="ninja-badge">NINJA</span>' : ''}<div style="font-size:2.5rem">${m.icon}</div><div style="font-weight:bold; margin-top:10px; color:${m.color}">${m.name.toUpperCase()}</div><div style="margin-top:4px">${badges}</div>`;
-            div.onclick = () => openRarityMenu(m, isNinja); grid.appendChild(div);
+// ===== DUEL =====
+async function loadDuel(){
+    if(!window.auth.currentUser){document.getElementById('duel-board').innerHTML='<p style="color:gray;font-size:0.78rem;">Connecte-toi d\'abord.</p>';return;}
+    document.getElementById('duel-board').innerHTML='<p style="color:gray;font-size:0.75rem;">Chargement...</p>';
+    try{
+        const snap=await window.dbGetDocs(window.dbCollection(window.db,"users"));
+        const players=[];
+        snap.forEach(doc=>{
+            const d=doc.data();
+            if(d.packScore!==undefined){
+                const isMe=doc.id===window.auth.currentUser.uid;
+                players.push({name:isMe?'👤 MOI':(d.pseudo||('Joueur '+doc.id.slice(0,5))),score:d.packScore||0,isMe});
+            }
         });
+        players.sort((a,b)=>b.score-a.score);
+        document.getElementById('duel-board').innerHTML=players.slice(0,10).map((p,i)=>{
+            const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+            return `<div class="drow"><span>${medal} <span style="color:${p.isMe?'var(--primary)':'#ccc'}">${p.name}</span></span><span style="font-size:1.2rem;font-weight:bold;color:${p.isMe?'var(--primary)':'#39ff14'}">${p.score}<span style="font-size:0.6rem;color:#555;"> pts</span></span></div>`;
+        }).join('')||'<p style="color:gray;font-size:0.78rem;">Aucun joueur.</p>';
+    }catch(e){document.getElementById('duel-board').innerHTML='<p style="color:gray;font-size:0.75rem;">Erreur de chargement.</p>';}
+}
+
+// ===== RARITY MENU =====
+function openRarityMenu(m,isNinja){
+    const menu=document.getElementById('rarity-menu'),inv=userInventory[m.id]||{};
+    document.getElementById('menu-name').innerText=(isNinja?'🥷 ':'')+m.name.toUpperCase();
+    document.getElementById('menu-name').style.color=m.color;
+    menu.style.display='flex';
+    function setup(id,stId,owned,color,cb){
+        const btn=document.getElementById(id);
+        btn.className='choice-card'+(owned?'':' locked');
+        btn.style.borderColor=owned?color:'#222';
+        document.getElementById(stId).innerText=owned?'POSSÉDÉE':'LOCKED';
+        btn.onclick=owned?()=>{cb();menu.style.display='none';}:null;
     }
+    setup('choice-std','st-s',inv.standard,m.color,()=>openCard(m,false,'standard',isNinja));
+    setup('choice-lgd','st-l',inv.legendary,'gold',()=>openCard(m,false,'legendary',isNinja));
+    const eBtn=document.getElementById('choice-epic');
+    if(isNinja){eBtn.style.display='block';setup('choice-epic','st-e',inv.epic,'#ff6b00',()=>openCard(m,false,'epic',isNinja));}
+    else eBtn.style.display='none';
+}
 
-    function openStats() {
-        let owned = 0; let total = members.length * 2 + ninjaMembers.length * 3;
-        members.forEach(m => { if(userInventory[m.id]?.standard) owned++; if(userInventory[m.id]?.legendary) owned++; });
-        ninjaMembers.forEach(m => { if(userInventory[m.id]?.standard) owned++; if(userInventory[m.id]?.legendary) owned++; if(userInventory[m.id]?.epic) owned++; });
-        document.getElementById('stats-content').innerHTML = `<b>Progression :</b> ${Math.round((owned/total)*100)}% (${owned}/${total})<br><b>Doublons :</b> ${doublonsCount}/5<br><b>Taux Légendaire :</b> 5%<br><b>Taux Épique (Ninja) :</b> 8%`;
-        document.getElementById('stats-modal').style.display = 'flex';
+// ===== CARD 3D =====
+let isDragging=false,startX,startY,curRotY=0,curRotX=0;
+const overlay=document.getElementById('focus-overlay');
+
+function openCard(m,isPop,rarity,isNinja){
+    overlay.style.display='flex';curRotY=0;curRotX=0;updateCardTransform();
+    if(isPop){document.getElementById('card-3d').classList.add('reveal-pop');setTimeout(()=>document.getElementById('card-3d').classList.remove('reveal-pop'),800);}
+    const isLgd=rarity==='legendary',isEpic=rarity==='epic';
+    const cls=isLgd?'legendary':isEpic?'epic':'';
+    const rlabel=isLgd?'✦ LÉGENDAIRE':isEpic?'⚡ ÉPIQUE':'• STANDARD';
+    const rcol=isLgd?'gold':isEpic?'#ff6b00':m.color;
+    const frontImg=isNinja?`face_ninja_${m.name}.png`:m.isGroupe?'face_groupe.png':`${m.name}_face.png`;
+    const backImg=isNinja?'dos_ninja.png':m.isGroupe?'dos_groupe.png':`${m.name}_dos.png`;
+    document.getElementById('front-content').className=`cface ${cls}`;
+    document.getElementById('front-content').innerHTML=
+        `<div class="shine" id="sf"></div><div class="imgc"><img src="${frontImg}"></div>
+         ${isLgd?'<div class="card-stars" id="cstars"></div>':''}
+         <div style="position:absolute;bottom:18px;left:18px;right:18px;background:rgba(0,0,0,0.85);padding:12px;border-radius:12px;border-left:5px solid ${rcol};z-index:10;backdrop-filter:blur(5px);">
+           <div style="font-size:0.58rem;color:${rcol};margin-bottom:2px;font-weight:bold;">${rlabel}${isNinja?' • 🥷 NINJA':''}</div>
+           <h3 style="margin:0;font-size:1rem;">${m.name.toUpperCase()}</h3>
+           <p style="margin:4px 0 0;font-size:0.78rem;opacity:0.8;">${m.desc}</p>
+         </div>`;
+    document.getElementById('back-content').innerHTML=`<div class="shine" id="sb"></div><div class="imgc"><img src="${backImg}"></div>`;
+    if(isLgd){
+        const cs=document.getElementById('cstars');
+        for(let i=0;i<12;i++){const s=document.createElement('div');s.className='cstar';const sz=2+Math.random()*4;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${100+Math.random()*20}%;animation-duration:${2+Math.random()*2}s;animation-delay:${Math.random()*2}s;`;cs.appendChild(s);}
     }
+}
+function updateCardTransform(){
+    document.getElementById('card-3d').style.transform=`rotateY(${curRotY}deg) rotateX(${curRotX}deg)`;
+    const sf=document.getElementById('sf'),sb=document.getElementById('sb');
+    if(sf)sf.style.transform=`translate(${(curRotY%360)*2}px,${curRotX*2}px)`;
+    if(sb)sb.style.transform=`translate(${-(curRotY%360)*2}px,${curRotX*2}px)`;
+}
+overlay.addEventListener('mousedown',e=>{isDragging=true;startX=e.pageX;startY=e.pageY;});
+overlay.addEventListener('touchstart',e=>{isDragging=true;startX=e.touches[0].pageX;startY=e.touches[0].pageY;});
+window.addEventListener('mousemove',e=>{if(!isDragging)return;curRotY+=(e.pageX-startX)*.8;curRotX=Math.max(-60,Math.min(60,curRotX-(e.pageY-startY)*.8));startX=e.pageX;startY=e.pageY;updateCardTransform();});
+window.addEventListener('touchmove',e=>{if(!isDragging)return;curRotY+=(e.touches[0].pageX-startX)*.8;curRotX=Math.max(-60,Math.min(60,curRotX-(e.touches[0].pageY-startY)*.8));startX=e.touches[0].pageX;startY=e.touches[0].pageY;updateCardTransform();});
+window.addEventListener('mouseup',()=>isDragging=false);
+window.addEventListener('touchend',()=>isDragging=false);
+function closeCard(){overlay.style.display='none';}
 
-    function changeInterfaceColor(color) { document.documentElement.style.setProperty('--primary', color); saveData(); }
-
-    function openRarityMenu(m, isNinja) {
-        const menu = document.getElementById('rarity-menu'); const inv = userInventory[m.id] || {};
-        document.getElementById('menu-name').innerText = (isNinja ? '🥷 ' : '') + m.name.toUpperCase(); document.getElementById('menu-name').style.color = m.color; menu.style.display = 'flex';
-        
-        const sBtn = document.getElementById('choice-standard'); sBtn.className = `choice-card ${inv.standard ? '' : 'locked'}`; sBtn.style.borderColor = inv.standard ? m.color : '#222';
-        document.getElementById('status-s').innerText = inv.standard ? "POSSÉDÉE" : "LOCKED"; sBtn.onclick = inv.standard ? () => { openCard(m, false, 'standard', isNinja); menu.style.display='none'; } : null;
-        
-        const lBtn = document.getElementById('choice-legendary'); lBtn.className = `choice-card ${inv.legendary ? '' : 'locked'}`; lBtn.style.borderColor = inv.legendary ? 'gold' : '#222';
-        document.getElementById('status-l').innerText = inv.legendary ? "POSSÉDÉE" : "LOCKED"; lBtn.onclick = inv.legendary ? () => { openCard(m, false, 'legendary', isNinja); menu.style.display='none'; } : null;
-
-        // EPIC — only for ninja
-        const eBtn = document.getElementById('choice-epic');
-        if(isNinja) {
-            eBtn.style.display = 'block';
-            eBtn.className = `choice-card ${inv.epic ? '' : 'locked'}`; eBtn.style.borderColor = inv.epic ? '#ff6b00' : '#222';
-            document.getElementById('status-e').innerText = inv.epic ? "POSSÉDÉE" : "LOCKED"; eBtn.onclick = inv.epic ? () => { openCard(m, false, 'epic', isNinja); menu.style.display='none'; } : null;
-        } else {
-            eBtn.style.display = 'none';
-        }
+// ===== PACK OPENING =====
+function openPackSel(){
+    if(!window.auth.currentUser)return alert("Connecte-toi !");
+    if(charges<=0)return alert("Plus de charges !");
+    document.getElementById('pack-sel').style.display='flex';
+    document.getElementById('ps-classic').style.display=currentTab==='classic'?'block':'none';
+    document.getElementById('ps-ninja').style.display=currentTab==='ninja'?'block':'none';
+    document.getElementById('pack-sel-title').innerText=currentTab==='ninja'?'🥷 PACK NINJA':'CHOISIR UN PACK';
+}
+function preparePack(icon,col){
+    if(!window.auth.currentUser)return alert("Connecte-toi !");
+    if(charges<=0)return alert("Plus de charges !");
+    currentPackCollection=col;
+    document.getElementById('pack-sel').style.display='none';
+    document.getElementById('booster-anim').style.display='flex';
+    document.getElementById('half-t').innerText=icon;
+    document.getElementById('half-b').innerText=icon;
+}
+function triggerRip(){
+    const pack=document.getElementById('pack-wrap');
+    if(pack.classList.contains('ripping'))return;
+    charges--;updateEnergySystem();document.getElementById('snd-rip').play();pack.classList.add('ripping');
+    if(currentPackCollection==='ninja'){
+        const now=Date.now();packOpenTimestamps.push(now);
+        packOpenTimestamps=packOpenTimestamps.filter(t=>now-t<600000);
+        if(packOpenTimestamps.length>=3&&!successes.ninja_badge){successes.ninja_badge=true;setTimeout(()=>toast('🏅 SUCCÈS : Badge Ninja Flash !'),1200);}
     }
-
-    function openPackSelection() {
-        if(!window.auth.currentUser) return alert("Connecte-toi !"); if(charges <= 0) return alert("Plus de charges !");
-        document.getElementById('pack-selection').style.display = 'flex';
-        document.getElementById('pack-classic-options').style.display = currentTab === 'classic' ? 'block' : 'none';
-        document.getElementById('pack-ninja-options').style.display = currentTab === 'ninja' ? 'block' : 'none';
-        document.getElementById('pack-select-title').innerText = currentTab === 'ninja' ? '🥷 PACK NINJA' : 'CHOISIR UN PACK';
+    let member,rarity;
+    if(currentPackCollection==='ninja'){
+        member=ninjaMembers[Math.floor(Math.random()*ninjaMembers.length)];
+        const r=Math.random();rarity=r<0.10?'epic':r<0.15?'legendary':'standard';
+    } else {
+        member=members[Math.floor(Math.random()*members.length)];
+        rarity=Math.random()<0.05?'legendary':'standard';
     }
+    const inv=userInventory[member.id]||{};
+    if(inv[rarity]){doublonsCount++;if(doublonsCount>=5){doublonsCount=0;charges=Math.min(3,charges+1);toast('✨ 5 DOUBLONS → +1 Charge !');}}
+    else{userInventory[member.id]={...inv,[rarity]:true};}
+    saveData();checkSuccesses();
+    setTimeout(()=>{document.getElementById('booster-anim').style.display='none';pack.classList.remove('ripping');openCard(member,true,rarity,currentPackCollection==='ninja');},800);
+}
 
-    function preparePack(icon, collection) {
-        if(!window.auth.currentUser) return alert("Connecte-toi !"); if(charges <= 0) return alert("Plus de charges !");
-        currentPackCollection = collection;
-        document.getElementById('pack-selection').style.display = 'none'; document.getElementById('booster-anim').style.display = 'flex';
-        document.getElementById('half-t').innerText = icon; document.getElementById('half-b').innerText = icon;
+// ===== DAILY =====
+function claimDaily(){
+    if(!window.auth.currentUser)return alert("Connecte-toi !");
+    const now=Date.now();
+    if(now-lastDaily<DAY){
+        const rem=DAY-(now-lastDaily),h=Math.floor(rem/3600000),m=Math.floor((rem%3600000)/60000);
+        return toast(`🌅 Prochain bonus dans ${h}h ${m}m`);
     }
+    lastDaily=now;charges=Math.min(charges+1,5);
+    successes.daily_count=(successes.daily_count||0)+1;
+    saveData();updateEnergySystem();checkSuccesses();
+    toast('🌅 BONUS QUOTIDIEN : +1 Charge !');
+}
 
-    function triggerRip() {
-        const pack = document.getElementById('pack-wrap'); if (pack.classList.contains('ripping')) return; charges--; updateEnergySystem(); document.getElementById('snd-rip').play(); pack.classList.add('ripping');
-        
-        let member, rarity;
-        if(currentPackCollection === 'ninja') {
-            member = ninjaMembers[Math.floor(Math.random() * ninjaMembers.length)];
-            const r = Math.random();
-            rarity = r < 0.10 ? 'epic' : r < 0.15 ? 'legendary' : 'standard';
-        } else {
-            member = members[Math.floor(Math.random() * members.length)];
-            rarity = Math.random() < 0.05 ? 'legendary' : 'standard';
-        }
+// ===== WHEEL =====
+const WSEG=[
+    {label:'+1 Charge',  color:'#00d2ff',fn:()=>{charges=Math.min(5,charges+1);toast('🎡 +1 Charge !');}},
+    {label:'Rien...',    color:'#1a1a1a',fn:()=>toast('🎡 Pas de chance...')},
+    {label:'Overload +', color:'#39ff14',fn:()=>{lastSkillTime=0;toast('🎡 Overload rechargé !');}},
+    {label:'Rien...',    color:'#1a1a1a',fn:()=>toast('🎡 Raté !')},
+    {label:'+1 Charge',  color:'#00d2ff',fn:()=>{charges=Math.min(5,charges+1);toast('🎡 +1 Charge !');}},
+    {label:'Doublon -1', color:'#bd00ff',fn:()=>{doublonsCount=Math.max(0,doublonsCount-1);toast('🎡 1 Doublon effacé !');}},
+    {label:'Rien...',    color:'#222',   fn:()=>toast('🎡 Pas de chance.')},
+    {label:'+2 Charges', color:'#ff6b00',fn:()=>{charges=Math.min(5,charges+2);successes.wheel_win=true;toast('🎡 +2 Charges !');}},
+];
+let wheelSpinning=false,wAngle=0;
 
-        const inv = userInventory[member.id] || {};
-        if(inv[rarity]) {
-            doublonsCount++; if(doublonsCount >= 5) { doublonsCount = 0; charges = Math.min(3, charges + 1); alert("✨ 5 DOUBLONS ! Vous gagnez +1 CHARGE !"); }
-        } else { userInventory[member.id] = { ...inv, [rarity]: true }; }
-
-        saveData();
-        setTimeout(() => {
-            document.getElementById('booster-anim').style.display = 'none'; pack.classList.remove('ripping');
-            openCard(member, true, rarity, currentPackCollection === 'ninja');
-        }, 800);
+function drawWheel(ang){
+    const cv=document.getElementById('wheel-canvas'),ctx=cv.getContext('2d');
+    const cx=140,cy=140,r=128,seg=(Math.PI*2)/WSEG.length;
+    ctx.clearRect(0,0,280,280);
+    WSEG.forEach((s,i)=>{
+        const a0=ang+i*seg,a1=a0+seg;
+        ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,a0,a1);ctx.closePath();
+        ctx.fillStyle=s.color;ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=2;ctx.stroke();
+        ctx.save();ctx.translate(cx,cy);ctx.rotate(a0+seg/2);
+        ctx.textAlign='right';ctx.fillStyle='white';ctx.font='bold 10px sans-serif';
+        ctx.fillText(s.label,r-8,4);ctx.restore();
+    });
+    ctx.beginPath();ctx.arc(cx,cy,10,0,Math.PI*2);ctx.fillStyle='#111';ctx.fill();ctx.strokeStyle='#333';ctx.lineWidth=2;ctx.stroke();
+}
+function openWheel(){
+    if(!window.auth.currentUser)return alert("Connecte-toi !");
+    document.getElementById('wheel-modal').style.display='flex';
+    const can=(Date.now()-lastWheel)>=DAY;
+    document.getElementById('wheel-spin-btn').disabled=!can;
+    document.getElementById('wheel-spin-btn').style.opacity=can?'1':'0.4';
+    if(!can){const rem=DAY-(Date.now()-lastWheel),h=Math.floor(rem/3600000),m=Math.floor((rem%3600000)/60000);document.getElementById('wheel-status').innerText=`Disponible dans ${h}h ${m}m`;}
+    else document.getElementById('wheel-status').innerText='Tourne la roue !';
+    drawWheel(wAngle);
+}
+function spinWheel(){
+    if(wheelSpinning)return;
+    wheelSpinning=true;document.getElementById('wheel-spin-btn').disabled=true;
+    const seg=(Math.PI*2)/WSEG.length,idx=Math.floor(Math.random()*WSEG.length);
+    const extraRot=(Math.PI*2)*(5+Math.random()*3);
+    const targetAngle=wAngle+extraRot-(idx*seg+seg/2)-Math.PI/2;
+    const dur=4000,t0=Date.now(),a0=wAngle;
+    function anim(){
+        const elapsed=Date.now()-t0,t=Math.min(elapsed/dur,1),ease=1-Math.pow(1-t,4);
+        wAngle=a0+(targetAngle-a0)*ease;drawWheel(wAngle);
+        if(t<1){requestAnimationFrame(anim);return;}
+        wheelSpinning=false;lastWheel=Date.now();
+        WSEG[idx].fn();saveData();updateEnergySystem();checkSuccesses();
+        document.getElementById('wheel-status').innerText='Reviens demain !';
     }
+    anim();
+}
 
-    function openLottoMenu() {
-        if(!window.auth.currentUser) return alert("Connecte-toi !"); document.getElementById('lotto-modal').style.display = 'flex';
-        document.getElementById('lotto-ui').style.display = 'block'; document.getElementById('slot-container').style.display = 'none';
-        ['opt-1','opt-2','opt-3'].forEach((id, i) => document.getElementById(id).className = `lotto-option ${charges < (i+1) ? 'disabled' : ''}`);
+// ===== LOTTO =====
+function openLottoMenu(){
+    if(!window.auth.currentUser)return alert("Connecte-toi !");
+    document.getElementById('lotto-modal').style.display='flex';
+    document.getElementById('lotto-ui').style.display='block';
+    document.getElementById('slot-c').style.display='none';
+    [['lo1',1],['lo2',2],['lo3',3]].forEach(([id,cost])=>{
+        document.getElementById(id).style.opacity=charges<cost?'0.35':'1';
+        document.getElementById(id).style.pointerEvents=charges<cost?'none':'auto';
+    });
+}
+function playLotto(cost,proba){
+    if(charges<cost)return;
+    charges-=cost;updateEnergySystem();
+    document.getElementById('lotto-ui').style.display='none';
+    document.getElementById('slot-c').style.display='block';
+    const reel=document.getElementById('reel'),win=Math.random()<=proba;
+    reel.innerHTML='';
+    for(let i=0;i<20;i++){const d=document.createElement('div');d.className='sitem';d.innerText=['❌','💧','🔥','🍕','💎'][Math.floor(Math.random()*5)];reel.appendChild(d);}
+    const f=document.createElement('div');f.className='sitem';f.innerText=win?'👑':'❌';reel.appendChild(f);
+    reel.style.top='0px';
+    setTimeout(()=>reel.style.top=`-${(reel.children.length-1)*100}px`,100);
+    setTimeout(()=>{
+        if(win){charges+=7;toast('🎰 GAGNÉ ! +7 Charges !');}else toast('🎰 Perdu...');
+        saveData();updateEnergySystem();document.getElementById('lotto-modal').style.display='none';
+    },2500);
+}
+
+// ===== OVERLOAD =====
+let sLvl=0,sInt=null;
+function openSkill(){
+    if(!window.auth.currentUser)return alert("Connecte-toi !");
+    document.getElementById('skill-modal').style.display='flex';
+    const diff=Date.now()-lastSkillTime;
+    if(diff<SKILL_CD){
+        document.getElementById('ov-game').style.display='none';
+        document.getElementById('ov-cd').style.display='block';
+        startOvTimer(SKILL_CD-diff);
+    } else {
+        document.getElementById('ov-cd').style.display='none';
+        document.getElementById('ov-game').style.display='flex';
+        sLvl=0;updateSkillUI();
     }
-    function playLotto(cost, proba) {
-        if(charges < cost) return; charges -= cost; updateEnergySystem();
-        document.getElementById('lotto-ui').style.display = 'none'; const reel = document.getElementById('reel');
-        document.getElementById('slot-container').style.display = 'block'; const win = Math.random() <= proba;
-        reel.innerHTML = ''; for(let i=0; i<20; i++) { const d = document.createElement('div'); d.className='slot-item'; d.innerText=['❌','💧','🔥','🍕','💎'][Math.floor(Math.random()*5)]; reel.appendChild(d); }
-        const f = document.createElement('div'); f.className='slot-item'; f.innerText=win?'👑':'❌'; reel.appendChild(f); reel.style.top='0px';
-        setTimeout(() => reel.style.top = `-${(reel.children.length-1)*100}px`, 100);
-        setTimeout(() => { if(win) { charges += 7; alert("GAGNÉ ! +7 CHARGES !"); } else alert("PERDU..."); saveData(); updateEnergySystem(); document.getElementById('lotto-modal').style.display='none'; }, 2500);
+}
+function startOvTimer(ms){
+    if(timerInterval)clearInterval(timerInterval);
+    const end=Date.now()+ms;
+    function tick(){
+        const rem=end-Date.now();
+        if(rem<=0){clearInterval(timerInterval);openSkill();return;}
+        const h=Math.floor(rem/3600000),m=Math.floor((rem%3600000)/60000),s=Math.floor((rem%60000)/1000);
+        document.getElementById('ov-timer').innerText=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }
+    tick();timerInterval=setInterval(tick,1000);
+}
+function startCharge(){
+    if(sInt)return;
+    sInt=setInterval(()=>{
+        sLvl+=0.8;updateSkillUI();
+        if(sLvl>80){document.getElementById('skill-sphere').classList.add('unstable');document.getElementById('skill-status').innerText='CRITIQUE !';}
+        if(sLvl>=100){clearInterval(sInt);sInt=null;toast('💥 SURCHAUFFE : ÉCHEC.');finalizeSkill();}
+    },40);
+}
+function stopCharge(){
+    if(!sInt)return;
+    clearInterval(sInt);sInt=null;
+    document.getElementById('skill-sphere').classList.remove('unstable');
+    if(sLvl>=92&&sLvl<=98){charges=Math.min(3,charges+1);successes.overload_ok=true;toast('⚡ STABILISATION PARFAITE : +1 Charge !');}
+    else if(sLvl>98)toast('⏱ TROP TARD : dispersée.');
+    else toast('⚡ Énergie insuffisante.');
+    finalizeSkill();
+}
+function finalizeSkill(){
+    lastSkillTime=Date.now();saveData();updateEnergySystem();checkSuccesses();
+    document.getElementById('skill-modal').style.display='none';
+    if(timerInterval)clearInterval(timerInterval);
+}
+function updateSkillUI(){
+    document.getElementById('skill-bar').style.width=sLvl+'%';
+    document.getElementById('skill-sphere').style.transform=`scale(${1+(sLvl/100)})`;
+}
 
-    async function saveData() { if(window.auth.currentUser) await window.dbSet(window.dbDoc(window.db, "users", window.auth.currentUser.uid), { inventory: userInventory, doublons: doublonsCount, charges: charges, lastRecharge: lastRecharge, lastSkillTime: lastSkillTime, themeColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() }, { merge: true }); }
-    
-    let isDragging = false, startX, startY, curRotY = 0, curRotX = 0;
-    const overlay = document.getElementById('focus-overlay');
+// ===== QUÊTES =====
+const QUESTS=[
+    {label:'3 packs Ninja en 10 min',reward:'Badge Ninja + Succès',icon:'🥷',max:3,
+     progress:()=>packOpenTimestamps.length,done:()=>!!successes.ninja_badge},
+    {label:'Obtenir 1 carte Légendaire',reward:'Succès débloqué',icon:'✦',max:1,
+     progress:()=>Object.values(userInventory).filter(v=>v.legendary).length,done:()=>Object.values(userInventory).some(v=>v.legendary)},
+    {label:'Posséder 5 cartes uniques',reward:'Succès débloqué',icon:'📦',max:5,
+     progress:()=>Math.min(countOwned(),5),done:()=>countOwned()>=5},
+    {label:'Récupérer le bonus quotidien',reward:'+1 Charge',icon:'🌅',max:1,
+     progress:()=>(lastDaily>0&&(Date.now()-lastDaily<DAY)?1:0),done:()=>lastDaily>0&&(Date.now()-lastDaily<DAY)},
+];
+function openQuests(){document.getElementById('quests-modal').style.display='flex';renderQuests();}
+function renderQuests(){
+    const el=document.getElementById('quests-list');el.innerHTML='';
+    QUESTS.forEach(q=>{
+        const prog=Math.min(q.progress(),q.max),done=q.done();
+        const d=document.createElement('div');d.className='qitem';d.style.opacity=done?'0.5':'1';
+        d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.78rem;">${q.icon} ${q.label}</span>
+            <span class="qbadge">${done?'✓ FAIT':`${prog}/${q.max}`}</span>
+        </div>
+        <div style="font-size:0.62rem;color:#555;margin-top:2px;">Récompense : ${q.reward}</div>
+        <div class="qbar"><div class="qfill" style="width:${(prog/q.max)*100}%;${done?'background:#39ff14;':''}"></div></div>`;
+        el.appendChild(d);
+    });
+}
 
-    function openCard(m, isPop, rarity, isNinja) {
-        overlay.style.display = 'flex'; curRotY = 0; curRotX = 0; updateCardTransform();
-        if(isPop) { document.getElementById('card-3d').classList.add('reveal-pop'); setTimeout(() => document.getElementById('card-3d').classList.remove('reveal-pop'), 800); }
-        
-        const isLegendary = rarity === 'legendary';
-        const isEpic = rarity === 'epic';
-        let rarityClass = isLegendary ? 'legendary' : isEpic ? 'epic' : '';
-        let rarityLabel = isLegendary ? '✦ LÉGENDAIRE' : isEpic ? '⚡ ÉPIQUE' : '• STANDARD';
-        let rarityColor = isLegendary ? 'gold' : isEpic ? '#ff6b00' : m.color;
-        let borderColor = isLegendary ? 'gold' : isEpic ? '#ff6b00' : m.color;
+// ===== SUCCÈS CHECK =====
+function checkSuccesses(){
+    ACHIEVEMENTS.forEach(a=>{
+        if(!successes[a.id]&&a.check()){successes[a.id]=true;toast(`🏆 SUCCÈS : ${a.name} !`);}
+    });
+}
 
-        // Image paths — ninja uses face_ninja_name / dos_ninja, classic uses name_face / name_dos
-        let frontImg, backImg;
-        if(isNinja) {
-            frontImg = `face_ninja_${m.name}.png`;
-            backImg = `dos_ninja.png`;
-        } else {
-            frontImg = `${m.name}_face.png`;
-            backImg = `${m.name}_dos.png`;
-        }
-
-        document.getElementById('front-content').className = `card-face card-front ${rarityClass}`;
-        document.getElementById('front-content').innerHTML = `<div class="specular-shine" id="shine-f"></div><div class="img-container"><img src="${frontImg}"></div><div style="position:absolute; bottom:20px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; border-left:5px solid ${borderColor}; z-index:10; backdrop-filter:blur(5px);"><div style="font-size:0.6rem; color:${rarityColor}; margin-bottom:2px; font-weight:bold;">${rarityLabel}${isNinja ? ' • 🥷 NINJA' : ''}</div><h3 style="margin:0;">${m.name.toUpperCase()}</h3><p style="margin:5px 0 0; font-size:0.85rem; opacity:0.8;">${m.desc}</p></div>`;
-        document.getElementById('back-content').innerHTML = `<div class="specular-shine" id="shine-b"></div><div class="img-container"><img src="${backImg}"></div>`;
-    }
-
-    function updateCardTransform() {
-        document.getElementById('card-3d').style.transform = `rotateY(${curRotY}deg) rotateX(${curRotX}deg)`;
-        const sf = document.getElementById('shine-f'), sb = document.getElementById('shine-b');
-        if(sf) sf.style.transform = `translate(${(curRotY%360)*2}px, ${curRotX*2}px)`;
-        if(sb) sb.style.transform = `translate(${-(curRotY%360)*2}px, ${curRotX*2}px)`;
-    }
-    overlay.addEventListener('mousedown', (e) => { isDragging = true; startX = e.pageX; startY = e.pageY; });
-    overlay.addEventListener('touchstart', (e) => { isDragging = true; startX = e.touches[0].pageX; startY = e.touches[0].pageY; });
-    window.addEventListener('mousemove', (e) => { if(!isDragging) return; curRotY += (e.pageX - startX)*0.8; curRotX = Math.max(-60, Math.min(60, curRotX - (e.pageY - startY)*0.8)); startX = e.pageX; startY = e.pageY; updateCardTransform(); });
-    window.addEventListener('touchmove', (e) => { if(!isDragging) return; curRotY += (e.touches[0].pageX - startX)*0.8; curRotX = Math.max(-60, Math.min(60, curRotX - (e.touches[0].pageY - startY)*0.8)); startX = e.touches[0].pageX; startY = e.touches[0].pageY; updateCardTransform(); });
-    window.addEventListener('mouseup', () => isDragging = false); window.addEventListener('touchend', () => isDragging = false);
-    function closeCard() { overlay.style.display = 'none'; }
-
-    // --- OVERLOAD LOGIC ---
-    let sLvl = 0, sInt = null;
-    const SKILL_COOLDOWN = 7200000; // 2h
-
-    function openSkill() {
-        if(!window.auth.currentUser) return alert("Connecte-toi !");
-        document.getElementById('skill-modal').style.display='flex';
-        const now = Date.now();
-        const diff = now - lastSkillTime;
-        if(diff < SKILL_COOLDOWN) {
-            document.getElementById('overload-game-view').style.display = 'none';
-            document.getElementById('overload-cooldown-view').style.display = 'block';
-            startOverloadTimer(SKILL_COOLDOWN - diff);
-        } else {
-            document.getElementById('overload-cooldown-view').style.display = 'none';
-            document.getElementById('overload-game-view').style.display = 'flex';
-            sLvl = 0; updateSkillUI();
-        }
-    }
-
-    function startOverloadTimer(ms) {
-        if(timerInterval) clearInterval(timerInterval);
-        const end = Date.now() + ms;
-        function update() {
-            const remaining = end - Date.now();
-            if(remaining <= 0) { clearInterval(timerInterval); openSkill(); return; }
-            const h = Math.floor(remaining / 3600000);
-            const m = Math.floor((remaining % 3600000) / 60000);
-            const s = Math.floor((remaining % 60000) / 1000);
-            document.getElementById('ov-timer').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        }
-        update();
-        timerInterval = setInterval(update, 1000);
-    }
-
-    function startCharge() {
-        if(sInt) return;
-        sInt = setInterval(() => {
-            sLvl += 0.8;
-            updateSkillUI();
-            if(sLvl > 80) { document.getElementById('skill-sphere').classList.add('unstable'); document.getElementById('skill-status').innerText="CRITIQUE !"; }
-            if(sLvl >= 100) { clearInterval(sInt); sInt = null; alert("SYSTÈME SURCHAUFFÉ : ÉCHEC."); finalizeSkill(); }
-        }, 40);
-    }
-
-    function stopCharge() {
-        if(!sInt) return;
-        clearInterval(sInt); sInt = null;
-        document.getElementById('skill-sphere').classList.remove('unstable');
-        if(sLvl >= 92 && sLvl <= 98) { charges = Math.min(3, charges + 1); alert("STABILISATION PARFAITE : +1 CHARGE !"); }
-        else if(sLvl > 98) { alert("TROP TARD... LA CHARGE S'EST DISPERSÉE."); }
-        else { alert("ÉNERGIE INSUFFISANTE POUR LA SYNC."); }
-        finalizeSkill();
-    }
-
-    function finalizeSkill() {
-        lastSkillTime = Date.now();
-        saveData(); updateEnergySystem();
-        document.getElementById('skill-modal').style.display='none';
-        if(timerInterval) clearInterval(timerInterval);
-    }
-
-    function updateSkillUI() {
-        document.getElementById('skill-bar').style.width = sLvl + '%';
-        document.getElementById('skill-sphere').style.transform = `scale(${1 + (sLvl/100)})`;
-    }
+// ===== TOAST =====
+let toastT=null;
+function toast(msg){
+    const el=document.getElementById('toast');el.innerText=msg;el.style.display='block';
+    if(toastT)clearTimeout(toastT);
+    toastT=setTimeout(()=>el.style.display='none',3200);
+}
 </script>
 </body>
 </html>
