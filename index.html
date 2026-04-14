@@ -74,7 +74,14 @@
         .opened .door-top { transform: translateY(-101%); }
         .opened .door-bottom { transform: translateY(101%); }
         #main-site { padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
-        .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-bottom: 120px; margin-top: 60px;}
+        
+        /* TABS */
+        .collection-tabs { display: flex; justify-content: center; gap: 10px; margin-top: 55px; margin-bottom: 15px; }
+        .tab-btn { padding: 8px 20px; border-radius: 20px; border: 1px solid #333; background: #111; color: #666; font-size: 0.75rem; font-weight: bold; cursor: pointer; letter-spacing: 2px; transition: all 0.3s; }
+        .tab-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0,210,255,0.1); }
+        .tab-btn.ninja-tab.active { border-color: #ff6b00; color: #ff6b00; background: rgba(255,107,0,0.1); }
+
+        .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-bottom: 120px; }
         .card-thumb { background: #111; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #333; position: relative; cursor: pointer; }
         .lock-icon { position: absolute; top: 5px; right: 8px; opacity: 0.4; font-size: 0.8rem; }
         #booster-anim { position: fixed; inset: 0; z-index: 9500; display: none; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; flex-direction: column; }
@@ -94,7 +101,12 @@
         .card-back { transform: rotateY(180deg); }
         .specular-shine { position: absolute; inset: -150%; z-index: 4; pointer-events: none; background: linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.2) 55%, transparent 60% ); mix-blend-mode: color-dodge; }
         .legendary .specular-shine { background: linear-gradient(110deg, transparent 30%, rgba(255, 215, 0, 0.3) 40%, rgba(255, 0, 255, 0.5) 50%, rgba(0, 255, 255, 0.3) 60%, transparent 70% ); mix-blend-mode: screen; }
+        /* EPIC shine */
+        .epic .specular-shine { background: linear-gradient(110deg, transparent 20%, rgba(255,107,0,0.4) 35%, rgba(255,50,50,0.6) 50%, rgba(255,107,0,0.4) 65%, transparent 80% ); mix-blend-mode: screen; }
         .card-face.legendary { border-color: gold; box-shadow: 0 0 40px rgba(255, 215, 0, 0.5); }
+        /* EPIC border */
+        .card-face.epic { border-color: #ff6b00; box-shadow: 0 0 40px rgba(255,107,0,0.7), 0 0 80px rgba(255,50,0,0.3); animation: epicPulse 1.5s infinite alternate; }
+        @keyframes epicPulse { from { box-shadow: 0 0 40px rgba(255,107,0,0.7); } to { box-shadow: 0 0 70px rgba(255,107,0,1), 0 0 120px rgba(255,50,0,0.5); } }
         .img-container { position: absolute; inset: 0; z-index: 1; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; }
         #pack-selection { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9000; display: none; flex-direction: column; align-items: center; justify-content: center; }
@@ -117,12 +129,9 @@
         .lotto-option { background: #222; border: 1px solid #444; padding: 15px; border-radius: 15px; margin: 10px 0; cursor: pointer; transition: 0.3s; }
         .lotto-option:hover { border-color: var(--primary); background: #2a2a2a; }
         .lotto-option.disabled { opacity: 0.4; cursor: not-allowed; }
-        
         #slot-container { width: 100px; height: 100px; background: #000; border: 4px solid gold; border-radius: 15px; margin: 20px auto; overflow: hidden; position: relative; display: none;}
         .slot-reel { position: absolute; top: 0; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; transition: top 2s cubic-bezier(0.45, 0.05, 0.55, 0.95); }
         .slot-item { height: 100px; line-height: 100px; font-size: 3rem; text-align: center; }
-
-        /* SKILL CSS */
         #skill-modal { position: fixed; inset: 0; background: #000; z-index: 27000; display: none; justify-content: center; align-items: center; flex-direction: column; overflow: hidden; }
         .core-sphere { width: 100px; height: 100px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 50px var(--primary); transition: transform 0.05s linear; position: relative; z-index: 5; }
         .core-ring { position: absolute; border: 2px solid var(--primary); border-radius: 50%; animation: rot linear infinite; opacity: 0.3; pointer-events: none; }
@@ -133,6 +142,10 @@
         #skill-game-btn { background: #000; color: #39ff14; border: 1px solid #39ff14; padding: 5px 12px; border-radius: 8px; font-size: 0.6rem; cursor: pointer; margin-bottom: 5px; }
         #overload-cooldown-view { display: none; text-align: center; }
         #overload-game-view { display: none; text-align: center; flex-direction: column; align-items: center; }
+
+        /* NINJA collection styles */
+        .ninja-badge { position: absolute; top: 5px; left: 8px; font-size: 0.55rem; font-weight: bold; color: #ff6b00; letter-spacing: 1px; }
+        .epic-badge { background: linear-gradient(90deg, #ff6b00, #ff2200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     </style>
 </head>
 <body>
@@ -167,13 +180,23 @@
     </div>
 </div>
 <div id="main-site">
-    <h2 style="text-align:center; letter-spacing: 5px; color:#222; margin-top: 40px;">SLIBARRE-DEX</h2>
+    <h2 style="text-align:center; letter-spacing: 5px; color:#222; margin-top: 60px;">SLIBARRE-DEX</h2>
+    <div class="collection-tabs">
+        <button class="tab-btn active" id="tab-classic" onclick="switchTab('classic')">⚡ CLASSIQUE</button>
+        <button class="tab-btn ninja-tab" id="tab-ninja" onclick="switchTab('ninja')">🥷 NINJA</button>
+    </div>
     <div class="pokedex-grid" id="grid"></div>
 </div>
 <div id="pack-selection">
-    <h2>CHOISIR UN PACK</h2>
-    <div class="pack-item-btn" onclick="preparePack('💧')">💧 PACK AQUA</div>
-    <div class="pack-item-btn" style="border-color: gold;" onclick="preparePack('👑')">👑 PACK ELITE</div>
+    <h2 id="pack-select-title">CHOISIR UN PACK</h2>
+    <div id="pack-classic-options">
+        <div class="pack-item-btn" onclick="preparePack('💧', 'classic')">💧 PACK AQUA</div>
+        <div class="pack-item-btn" style="border-color: gold;" onclick="preparePack('👑', 'classic')">👑 PACK ELITE</div>
+    </div>
+    <div id="pack-ninja-options" style="display:none;">
+        <div class="pack-item-btn" style="border-color:#ff6b00;" onclick="preparePack('🥷', 'ninja')">🥷 PACK NINJA</div>
+        <div class="pack-item-btn" style="border-color:#ff2200;" onclick="preparePack('🔥', 'ninja')">🔥 PACK SHADOW</div>
+    </div>
     <button onclick="document.getElementById('pack-selection').style.display='none'" style="background:none; border:none; color:white; margin-top:20px; cursor:pointer;">RETOUR</button>
 </div>
 <div id="booster-anim">
@@ -185,7 +208,8 @@
 <div id="rarity-menu">
     <h2 id="menu-name">NOM</h2>
     <div id="choice-standard" class="choice-card"><h4>STANDARD</h4><span id="status-s">LOCKED</span></div>
-    <div id="choice-legendary" class="choice-card"><h4>LÉGENDAIRE</h4><span id="status-l">LOCKED</span></div>
+    <div id="choice-epic" class="choice-card" style="display:none;"><h4 style="color:#ff6b00">⚡ ÉPIQUE</h4><span id="status-e">LOCKED</span></div>
+    <div id="choice-legendary" class="choice-card"><h4>✦ LÉGENDAIRE</h4><span id="status-l">LOCKED</span></div>
     <button onclick="document.getElementById('rarity-menu').style.display='none'" style="margin-top:30px; background:none; border:1px solid #444; color:gray; padding:10px 25px; border-radius:10px; cursor:pointer;">RETOUR</button>
 </div>
 <div id="focus-overlay">
@@ -216,7 +240,6 @@
         <p style="color:gray; font-size: 0.8rem;">Le réacteur doit refroidir avant une nouvelle injection.</p>
         <button onclick="document.getElementById('skill-modal').style.display='none'" style="margin-top:30px; background:none; border:1px solid #444; color:white; padding:10px 20px; border-radius:10px;">RETOUR</button>
     </div>
-
     <div id="overload-game-view">
         <h2 id="skill-status" style="margin-bottom:5px; font-size:0.9rem">STABILISATION REQUISE</h2>
         <p style="font-size:0.6rem; color:gray; margin-bottom:20px;">Relâche entre 92% et 98%</p>
@@ -239,13 +262,15 @@
 <div id="pack-opener-area">
     <button id="skill-game-btn" onclick="openSkill()">⚡ OVERLOAD (FREE)</button>
     <button id="lotto-btn" onclick="openLottoMenu()">🎰 LOTERIE DE LA CHANCE</button>
-    <button id="open-pack-btn" onclick="document.getElementById('pack-selection').style.display='flex'">OBTENIR DES CARTES</button>
+    <button id="open-pack-btn" onclick="openPackSelection()">OBTENIR DES CARTES</button>
     <div id="energy-display">CHARGES : <span id="charge-count">3</span>/3 <span id="timer-display" style="font-weight:normal; opacity:0.6; font-size:0.7rem"></span></div>
 </div>
 
 <script>
-    let userInventory = {}; let doublonsCount = 0; let isSignup = false; let charges = 3; let lastRecharge = Date.now(); let lastSkillTime = 0; const COOLDOWN = 3600000; 
+    let userInventory = {}; let doublonsCount = 0; let isSignup = false; let charges = 3; let lastRecharge = Date.now(); let lastSkillTime = 0; const COOLDOWN = 3600000;
     let timerInterval = null;
+    let currentTab = 'classic';
+    let currentPackCollection = 'classic';
 
     function updateEnergySystem() {
         const now = Date.now(); const diff = now - lastRecharge;
@@ -258,6 +283,7 @@
         } else { document.getElementById('timer-display').innerText = ""; }
     }
     setInterval(updateEnergySystem, 1000);
+
     const members = [
         { id: 'malo', name: 'malo', icon: '💧', color: '#00d2ff', desc: 'Maître des flux.' },
         { id: 'lilian', name: 'lilian', icon: '👁️', color: '#bd00ff', desc: 'L\'Observateur.' },
@@ -265,48 +291,119 @@
         { id: 'arthur', name: 'arthur', icon: '⛩️', color: '#ff3e3e', desc: 'Le Shogun.' },
         { id: 'danny', name: 'danny', icon: '🎮', color: '#39ff14', desc: 'Le Gamer.' }
     ];
+
+    // NINJA collection — raretés: standard, legendary, epic
+    const ninjaMembers = [
+        { id: 'ninja_malo', name: 'malo', icon: '🌊', color: '#00d2ff', desc: 'Lame de l\'Eau.', collection: 'ninja' },
+        { id: 'ninja_lilian', name: 'lilian', icon: '👁️', color: '#bd00ff', desc: 'Œil de la Nuit.', collection: 'ninja' },
+        { id: 'ninja_charli', name: 'charli', icon: '🍜', color: '#ffcc00', desc: 'Cuisinier Fantôme.', collection: 'ninja' },
+        { id: 'ninja_arthur', name: 'arthur', icon: '⛩️', color: '#ff3e3e', desc: 'Seigneur de Guerre.', collection: 'ninja' },
+        { id: 'ninja_danny', name: 'danny', icon: '🎮', color: '#39ff14', desc: 'Hacker Silencieux.', collection: 'ninja' }
+    ];
+
     function toggleAuthModal() { if(window.auth.currentUser) { if(confirm("Déconnexion ?")) window.auth.signOut(); } else { document.getElementById('auth-modal').style.display = 'flex'; } }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('tab-classic').classList.toggle('active', tab === 'classic');
+        document.getElementById('tab-ninja').classList.toggle('active', tab === 'ninja');
+        updateGrid();
+    }
+
     function openDex() {
         document.getElementById('auth-trigger-btn').style.display = 'none'; document.getElementById('start-btn').style.display = 'none'; document.getElementById('stats-btn').style.display = 'block';
         document.getElementById('intro-screen').classList.add('opened'); setTimeout(() => { document.getElementById('intro-screen').style.display = 'none'; }, 800);
         updateGrid();
     }
+
     function updateGrid() {
         const grid = document.getElementById('grid'); grid.innerHTML = '';
-        members.forEach(m => {
-            const hasAny = userInventory[m.id] && (userInventory[m.id].standard || userInventory[m.id].legendary);
+        const list = currentTab === 'ninja' ? ninjaMembers : members;
+        list.forEach(m => {
+            const isNinja = currentTab === 'ninja';
+            const inv = userInventory[m.id] || {};
+            const hasAny = inv.standard || inv.legendary || (isNinja && inv.epic);
             const div = document.createElement('div'); div.className = 'card-thumb'; div.style.borderColor = hasAny ? m.color : '#222';
-            div.innerHTML = `${!hasAny ? '<span class="lock-icon">🔒</span>' : ''}<div style="font-size:2.5rem">${m.icon}</div><div style="font-weight:bold; margin-top:10px; color:${m.color}">${m.name.toUpperCase()}</div>`;
-            div.onclick = () => openRarityMenu(m); grid.appendChild(div);
+            let badges = '';
+            if(inv.standard) badges += `<span style="font-size:0.5rem; color:#aaa; display:block">• STD</span>`;
+            if(inv.legendary) badges += `<span style="font-size:0.5rem; color:gold; display:block">✦ LGD</span>`;
+            if(isNinja && inv.epic) badges += `<span style="font-size:0.5rem; color:#ff6b00; display:block">⚡ EPC</span>`;
+            div.innerHTML = `${!hasAny ? '<span class="lock-icon">🔒</span>' : ''}${isNinja ? '<span class="ninja-badge">NINJA</span>' : ''}<div style="font-size:2.5rem">${m.icon}</div><div style="font-weight:bold; margin-top:10px; color:${m.color}">${m.name.toUpperCase()}</div><div style="margin-top:4px">${badges}</div>`;
+            div.onclick = () => openRarityMenu(m, isNinja); grid.appendChild(div);
         });
     }
+
     function openStats() {
-        let owned = 0; members.forEach(m => { if(userInventory[m.id]?.standard) owned++; if(userInventory[m.id]?.legendary) owned++; });
-        document.getElementById('stats-content').innerHTML = `<b>Progression :</b> ${Math.round((owned/(members.length*2))*100)}% (${owned}/${members.length*2})<br><b>Doublons :</b> ${doublonsCount}/5<br><b>Taux Légendaire :</b> 5%`;
+        let owned = 0; let total = members.length * 2 + ninjaMembers.length * 3;
+        members.forEach(m => { if(userInventory[m.id]?.standard) owned++; if(userInventory[m.id]?.legendary) owned++; });
+        ninjaMembers.forEach(m => { if(userInventory[m.id]?.standard) owned++; if(userInventory[m.id]?.legendary) owned++; if(userInventory[m.id]?.epic) owned++; });
+        document.getElementById('stats-content').innerHTML = `<b>Progression :</b> ${Math.round((owned/total)*100)}% (${owned}/${total})<br><b>Doublons :</b> ${doublonsCount}/5<br><b>Taux Légendaire :</b> 5%<br><b>Taux Épique (Ninja) :</b> 8%`;
         document.getElementById('stats-modal').style.display = 'flex';
     }
+
     function changeInterfaceColor(color) { document.documentElement.style.setProperty('--primary', color); saveData(); }
-    function openRarityMenu(m) {
-        const menu = document.getElementById('rarity-menu'); const inv = userInventory[m.id] || { standard: false, legendary: false };
-        document.getElementById('menu-name').innerText = m.name.toUpperCase(); document.getElementById('menu-name').style.color = m.color; menu.style.display = 'flex';
+
+    function openRarityMenu(m, isNinja) {
+        const menu = document.getElementById('rarity-menu'); const inv = userInventory[m.id] || {};
+        document.getElementById('menu-name').innerText = (isNinja ? '🥷 ' : '') + m.name.toUpperCase(); document.getElementById('menu-name').style.color = m.color; menu.style.display = 'flex';
+        
         const sBtn = document.getElementById('choice-standard'); sBtn.className = `choice-card ${inv.standard ? '' : 'locked'}`; sBtn.style.borderColor = inv.standard ? m.color : '#222';
-        document.getElementById('status-s').innerText = inv.standard ? "POSSÉDÉE" : "LOCKED"; sBtn.onclick = inv.standard ? () => { openCard(m, false, false); menu.style.display='none'; } : null;
+        document.getElementById('status-s').innerText = inv.standard ? "POSSÉDÉE" : "LOCKED"; sBtn.onclick = inv.standard ? () => { openCard(m, false, 'standard', isNinja); menu.style.display='none'; } : null;
+        
         const lBtn = document.getElementById('choice-legendary'); lBtn.className = `choice-card ${inv.legendary ? '' : 'locked'}`; lBtn.style.borderColor = inv.legendary ? 'gold' : '#222';
-        document.getElementById('status-l').innerText = inv.legendary ? "POSSÉDÉE" : "LOCKED"; lBtn.onclick = inv.legendary ? () => { openCard(m, false, true); menu.style.display='none'; } : null;
+        document.getElementById('status-l').innerText = inv.legendary ? "POSSÉDÉE" : "LOCKED"; lBtn.onclick = inv.legendary ? () => { openCard(m, false, 'legendary', isNinja); menu.style.display='none'; } : null;
+
+        // EPIC — only for ninja
+        const eBtn = document.getElementById('choice-epic');
+        if(isNinja) {
+            eBtn.style.display = 'block';
+            eBtn.className = `choice-card ${inv.epic ? '' : 'locked'}`; eBtn.style.borderColor = inv.epic ? '#ff6b00' : '#222';
+            document.getElementById('status-e').innerText = inv.epic ? "POSSÉDÉE" : "LOCKED"; eBtn.onclick = inv.epic ? () => { openCard(m, false, 'epic', isNinja); menu.style.display='none'; } : null;
+        } else {
+            eBtn.style.display = 'none';
+        }
     }
-    function preparePack(icon) {
+
+    function openPackSelection() {
         if(!window.auth.currentUser) return alert("Connecte-toi !"); if(charges <= 0) return alert("Plus de charges !");
+        document.getElementById('pack-selection').style.display = 'flex';
+        document.getElementById('pack-classic-options').style.display = currentTab === 'classic' ? 'block' : 'none';
+        document.getElementById('pack-ninja-options').style.display = currentTab === 'ninja' ? 'block' : 'none';
+        document.getElementById('pack-select-title').innerText = currentTab === 'ninja' ? '🥷 PACK NINJA' : 'CHOISIR UN PACK';
+    }
+
+    function preparePack(icon, collection) {
+        if(!window.auth.currentUser) return alert("Connecte-toi !"); if(charges <= 0) return alert("Plus de charges !");
+        currentPackCollection = collection;
         document.getElementById('pack-selection').style.display = 'none'; document.getElementById('booster-anim').style.display = 'flex';
         document.getElementById('half-t').innerText = icon; document.getElementById('half-b').innerText = icon;
     }
+
     function triggerRip() {
         const pack = document.getElementById('pack-wrap'); if (pack.classList.contains('ripping')) return; charges--; updateEnergySystem(); document.getElementById('snd-rip').play(); pack.classList.add('ripping');
-        const member = members[Math.floor(Math.random()*members.length)]; const isLeg = Math.random() < 0.05; const rarity = isLeg ? 'legendary' : 'standard';
-        if(userInventory[member.id] && userInventory[member.id][rarity]) {
+        
+        let member, rarity;
+        if(currentPackCollection === 'ninja') {
+            member = ninjaMembers[Math.floor(Math.random() * ninjaMembers.length)];
+            const r = Math.random();
+            rarity = r < 0.10 ? 'epic' : r < 0.15 ? 'legendary' : 'standard';
+        } else {
+            member = members[Math.floor(Math.random() * members.length)];
+            rarity = Math.random() < 0.05 ? 'legendary' : 'standard';
+        }
+
+        const inv = userInventory[member.id] || {};
+        if(inv[rarity]) {
             doublonsCount++; if(doublonsCount >= 5) { doublonsCount = 0; charges = Math.min(3, charges + 1); alert("✨ 5 DOUBLONS ! Vous gagnez +1 CHARGE !"); }
-        } else { userInventory[member.id] = { ...(userInventory[member.id] || {}), [rarity]: true }; }
-        saveData(); setTimeout(() => { document.getElementById('booster-anim').style.display = 'none'; pack.classList.remove('ripping'); openCard(member, true, isLeg); }, 800);
+        } else { userInventory[member.id] = { ...inv, [rarity]: true }; }
+
+        saveData();
+        setTimeout(() => {
+            document.getElementById('booster-anim').style.display = 'none'; pack.classList.remove('ripping');
+            openCard(member, true, rarity, currentPackCollection === 'ninja');
+        }, 800);
     }
+
     function openLottoMenu() {
         if(!window.auth.currentUser) return alert("Connecte-toi !"); document.getElementById('lotto-modal').style.display = 'flex';
         document.getElementById('lotto-ui').style.display = 'block'; document.getElementById('slot-container').style.display = 'none';
@@ -321,17 +418,38 @@
         setTimeout(() => reel.style.top = `-${(reel.children.length-1)*100}px`, 100);
         setTimeout(() => { if(win) { charges += 7; alert("GAGNÉ ! +7 CHARGES !"); } else alert("PERDU..."); saveData(); updateEnergySystem(); document.getElementById('lotto-modal').style.display='none'; }, 2500);
     }
+
     async function saveData() { if(window.auth.currentUser) await window.dbSet(window.dbDoc(window.db, "users", window.auth.currentUser.uid), { inventory: userInventory, doublons: doublonsCount, charges: charges, lastRecharge: lastRecharge, lastSkillTime: lastSkillTime, themeColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() }, { merge: true }); }
     
     let isDragging = false, startX, startY, curRotY = 0, curRotX = 0;
     const overlay = document.getElementById('focus-overlay');
-    function openCard(m, isPop, isLegendary) {
+
+    function openCard(m, isPop, rarity, isNinja) {
         overlay.style.display = 'flex'; curRotY = 0; curRotX = 0; updateCardTransform();
         if(isPop) { document.getElementById('card-3d').classList.add('reveal-pop'); setTimeout(() => document.getElementById('card-3d').classList.remove('reveal-pop'), 800); }
-        document.getElementById('front-content').className = `card-face card-front ${isLegendary?'legendary':''}`;
-        document.getElementById('front-content').innerHTML = `<div class="specular-shine" id="shine-f"></div><div class="img-container"><img src="${m.name}_face.png"></div><div style="position:absolute; bottom:20px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; border-left:5px solid ${isLegendary?'gold':m.color}; z-index:10; backdrop-filter:blur(5px);"><div style="font-size:0.6rem; color:gold; margin-bottom:2px; font-weight:bold;">${isLegendary?'✦ LÉGENDAIRE':'• STANDARD'}</div><h3 style="margin:0;">${m.name.toUpperCase()}</h3><p style="margin:5px 0 0; font-size:0.85rem; opacity:0.8;">${m.desc}</p></div>`;
-        document.getElementById('back-content').innerHTML = `<div class="specular-shine" id="shine-b"></div><div class="img-container"><img src="${m.name}_dos.png"></div>`;
+        
+        const isLegendary = rarity === 'legendary';
+        const isEpic = rarity === 'epic';
+        let rarityClass = isLegendary ? 'legendary' : isEpic ? 'epic' : '';
+        let rarityLabel = isLegendary ? '✦ LÉGENDAIRE' : isEpic ? '⚡ ÉPIQUE' : '• STANDARD';
+        let rarityColor = isLegendary ? 'gold' : isEpic ? '#ff6b00' : m.color;
+        let borderColor = isLegendary ? 'gold' : isEpic ? '#ff6b00' : m.color;
+
+        // Image paths — ninja uses face_ninja_name / dos_ninja, classic uses name_face / name_dos
+        let frontImg, backImg;
+        if(isNinja) {
+            frontImg = `face_ninja_${m.name}.png`;
+            backImg = `dos_ninja.png`;
+        } else {
+            frontImg = `${m.name}_face.png`;
+            backImg = `${m.name}_dos.png`;
+        }
+
+        document.getElementById('front-content').className = `card-face card-front ${rarityClass}`;
+        document.getElementById('front-content').innerHTML = `<div class="specular-shine" id="shine-f"></div><div class="img-container"><img src="${frontImg}"></div><div style="position:absolute; bottom:20px; left:20px; right:20px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; border-left:5px solid ${borderColor}; z-index:10; backdrop-filter:blur(5px);"><div style="font-size:0.6rem; color:${rarityColor}; margin-bottom:2px; font-weight:bold;">${rarityLabel}${isNinja ? ' • 🥷 NINJA' : ''}</div><h3 style="margin:0;">${m.name.toUpperCase()}</h3><p style="margin:5px 0 0; font-size:0.85rem; opacity:0.8;">${m.desc}</p></div>`;
+        document.getElementById('back-content').innerHTML = `<div class="specular-shine" id="shine-b"></div><div class="img-container"><img src="${backImg}"></div>`;
     }
+
     function updateCardTransform() {
         document.getElementById('card-3d').style.transform = `rotateY(${curRotY}deg) rotateX(${curRotX}deg)`;
         const sf = document.getElementById('shine-f'), sb = document.getElementById('shine-b');
@@ -345,24 +463,20 @@
     window.addEventListener('mouseup', () => isDragging = false); window.addEventListener('touchend', () => isDragging = false);
     function closeCard() { overlay.style.display = 'none'; }
 
-    // --- OVERLOAD LOGIC (REWORKED WITH LIVE TIMER VIEW) ---
+    // --- OVERLOAD LOGIC ---
     let sLvl = 0, sInt = null;
     const SKILL_COOLDOWN = 7200000; // 2h
 
     function openSkill() {
         if(!window.auth.currentUser) return alert("Connecte-toi !");
         document.getElementById('skill-modal').style.display='flex';
-        
         const now = Date.now();
         const diff = now - lastSkillTime;
-
         if(diff < SKILL_COOLDOWN) {
-            // Afficher la vue Cooldown
             document.getElementById('overload-game-view').style.display = 'none';
             document.getElementById('overload-cooldown-view').style.display = 'block';
             startOverloadTimer(SKILL_COOLDOWN - diff);
         } else {
-            // Afficher le Jeu
             document.getElementById('overload-cooldown-view').style.display = 'none';
             document.getElementById('overload-game-view').style.display = 'flex';
             sLvl = 0; updateSkillUI();
@@ -372,19 +486,13 @@
     function startOverloadTimer(ms) {
         if(timerInterval) clearInterval(timerInterval);
         const end = Date.now() + ms;
-        
         function update() {
             const remaining = end - Date.now();
-            if(remaining <= 0) {
-                clearInterval(timerInterval);
-                openSkill(); // Rafraîchit la vue
-                return;
-            }
+            if(remaining <= 0) { clearInterval(timerInterval); openSkill(); return; }
             const h = Math.floor(remaining / 3600000);
             const m = Math.floor((remaining % 3600000) / 60000);
             const s = Math.floor((remaining % 60000) / 1000);
-            document.getElementById('ov-timer').innerText = 
-                `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            document.getElementById('ov-timer').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
         }
         update();
         timerInterval = setInterval(update, 1000);
@@ -393,46 +501,34 @@
     function startCharge() {
         if(sInt) return;
         sInt = setInterval(() => {
-            sLvl += 0.8; 
+            sLvl += 0.8;
             updateSkillUI();
-            if(sLvl > 80) { 
-                document.getElementById('skill-sphere').classList.add('unstable'); 
-                document.getElementById('skill-status').innerText="CRITIQUE !";
-            }
-            if(sLvl >= 100) { 
-                clearInterval(sInt); sInt = null; 
-                alert("SYSTÈME SURCHAUFFÉ : ÉCHEC."); 
-                finalizeSkill();
-            }
+            if(sLvl > 80) { document.getElementById('skill-sphere').classList.add('unstable'); document.getElementById('skill-status').innerText="CRITIQUE !"; }
+            if(sLvl >= 100) { clearInterval(sInt); sInt = null; alert("SYSTÈME SURCHAUFFÉ : ÉCHEC."); finalizeSkill(); }
         }, 40);
     }
 
     function stopCharge() {
-        if(!sInt) return; clearInterval(sInt); sInt = null;
+        if(!sInt) return;
+        clearInterval(sInt); sInt = null;
         document.getElementById('skill-sphere').classList.remove('unstable');
-        if(sLvl >= 92 && sLvl <= 98) { 
-            charges = Math.min(3, charges+1); 
-            alert("STABILISATION PARFAITE : +1 CHARGE !"); 
-        } else if (sLvl > 98) {
-            alert("TROP TARD... LA CHARGE S'EST DISPURSÉE.");
-        } else {
-            alert("ÉNERGIE INSUFFISANTE POUR LA SYNC.");
-        }
+        if(sLvl >= 92 && sLvl <= 98) { charges = Math.min(3, charges + 1); alert("STABILISATION PARFAITE : +1 CHARGE !"); }
+        else if(sLvl > 98) { alert("TROP TARD... LA CHARGE S'EST DISPERSÉE."); }
+        else { alert("ÉNERGIE INSUFFISANTE POUR LA SYNC."); }
         finalizeSkill();
     }
 
     function finalizeSkill() {
-        lastSkillTime=Date.now(); saveData(); updateEnergySystem(); 
+        lastSkillTime = Date.now();
+        saveData(); updateEnergySystem();
         document.getElementById('skill-modal').style.display='none';
         if(timerInterval) clearInterval(timerInterval);
     }
 
-    function updateSkillUI() { 
-        document.getElementById('skill-bar').style.width = sLvl+'%'; 
-        document.getElementById('skill-sphere').style.transform = `scale(${1+(sLvl/100)})`; 
+    function updateSkillUI() {
+        document.getElementById('skill-bar').style.width = sLvl + '%';
+        document.getElementById('skill-sphere').style.transform = `scale(${1 + (sLvl/100)})`;
     }
 </script>
 </body>
 </html>
-                
-                
