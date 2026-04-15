@@ -1,0 +1,26 @@
+{
+  "name": "Slibarre-Dex",
+  "short_name": "Slibarre",
+  "description": "La collection de cartes de la Clique du Slibarre",
+  "start_url": "./slibarre-dex.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00d2ff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": []
+}
