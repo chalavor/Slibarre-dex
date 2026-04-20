@@ -160,21 +160,35 @@ body.theme-night .card-thumb.is-ninja{box-shadow:0 0 12px rgba(157,0,255,.5);}
 .pbtn{background:var(--primary);border:none;border-radius:10px;font-weight:700;cursor:pointer;padding:11px;width:100%;color:#000;}
 .sec-h{font-size:.72rem;color:var(--primary);letter-spacing:2px;font-weight:700;text-align:left;margin:14px 0 6px;}
 /* BOOSTER */
-#booster-anim{position:fixed;inset:0;z-index:9500;display:none;background:#000;justify-content:center;align-items:center;flex-direction:column;overflow:hidden;}
-#booster-anim::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(0,80,160,.4),transparent 65%);pointer-events:none;}
-#pack-glow{position:absolute;width:280px;height:440px;border-radius:18px;pointer-events:none;z-index:0;animation:packGlowPulse 2.2s ease-in-out infinite alternate;}
-@keyframes packGlowPulse{from{box-shadow:0 0 40px rgba(0,180,255,.25),0 0 90px rgba(0,100,200,.12);}to{box-shadow:0 0 70px rgba(0,220,255,.5),0 0 140px rgba(0,160,255,.25);}}
-.pack-wrapper{width:260px;height:420px;position:relative;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;}
-#pack-img-full{width:100%;height:100%;object-fit:contain;border-radius:16px;pointer-events:none;display:block;filter:drop-shadow(0 0 18px rgba(0,180,255,.45));}
-.pack-wrapper:active #pack-img-full{transform:scale(.97);}
-.pack-holo{position:absolute;inset:0;border-radius:16px;background:linear-gradient(115deg,transparent 20%,rgba(255,255,255,.04) 38%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.04) 62%,transparent 80%);mix-blend-mode:overlay;pointer-events:none;animation:holoSlide 3.5s ease-in-out infinite alternate;}
-@keyframes holoSlide{from{transform:translateX(-30%);}to{transform:translateX(30%);}}
-#pack-tap-hint{color:#3a3a3a;font-size:.7rem;letter-spacing:3px;margin-bottom:12px;animation:hintPulse 1.8s ease-in-out infinite alternate;}
-@keyframes hintPulse{from{opacity:.3;}to{opacity:.8;}}
-.ripping #pack-img-full{animation:packRip .85s cubic-bezier(.4,0,.2,1) forwards;}
-@keyframes packRip{0%{transform:scale(1);filter:drop-shadow(0 0 18px rgba(0,180,255,.45));}25%{transform:scale(1.04) rotate(-1.5deg);filter:drop-shadow(0 0 50px rgba(255,220,50,.9)) brightness(1.5);}55%{transform:scale(1.08) rotate(1deg) translateY(-6px);filter:drop-shadow(0 0 80px #fff) brightness(2.2);}100%{transform:scale(.15) rotate(6deg) translateY(-220px);opacity:0;filter:brightness(4);}}
+#booster-anim{position:fixed;inset:0;z-index:9500;display:none;background:#000;justify-content:center;align-items:center;flex-direction:column;overflow:hidden;transition:background .5s;}
+#pack-collection-label{position:relative;z-index:3;transition:color .4s;}
+#pack-glow{position:absolute;width:300px;height:460px;border-radius:22px;pointer-events:none;z-index:0;}
+@keyframes packGlowPulse{from{box-shadow:0 0 50px var(--gc,rgba(0,180,255,.3)),0 0 120px var(--gc,rgba(0,100,200,.15));}to{box-shadow:0 0 90px var(--gc,rgba(0,220,255,.6)),0 0 220px var(--gc,rgba(0,160,255,.3));}}
+.pack-wrapper{width:260px;height:420px;position:relative;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;transition:transform .15s;}
+.pack-wrapper:hover{transform:scale(1.015);}
+.pack-wrapper:active{transform:scale(.97);}
+#pack-img-full{width:100%;height:100%;object-fit:contain;border-radius:16px;pointer-events:none;display:block;transition:filter .4s,transform .15s;}
+.pack-holo{position:absolute;inset:0;border-radius:16px;mix-blend-mode:overlay;pointer-events:none;animation:holoSlide 3s ease-in-out infinite alternate;transition:background .4s;}
+@keyframes holoSlide{from{transform:translateX(-35%) skewX(-5deg);}to{transform:translateX(35%) skewX(5deg);}}
+#pack-tap-hint{color:#444;font-size:.7rem;letter-spacing:3px;margin-bottom:12px;animation:hintPulse 1.8s ease-in-out infinite alternate;position:relative;z-index:3;}
+@keyframes hintPulse{from{opacity:.25;letter-spacing:3px;}to{opacity:.9;letter-spacing:5px;}}
+.ripping #pack-img-full{animation:packRip .9s cubic-bezier(.4,0,.2,1) forwards;}
+@keyframes packRip{
+  0%  {transform:scale(1)         rotate(0deg)   translateY(0);    }
+  15% {transform:scale(1.06)      rotate(-2deg)  translateY(-4px); filter:brightness(1.4);}
+  35% {transform:scale(1.1)       rotate(2.5deg) translateY(-10px);filter:drop-shadow(0 0 60px rgba(255,220,50,.9)) brightness(2);}
+  60% {transform:scale(1.12)      rotate(-1deg)  translateY(-18px);filter:drop-shadow(0 0 100px #fff) brightness(3);}
+  100%{transform:scale(.1)        rotate(8deg)   translateY(-280px);opacity:0;filter:brightness(5);}
+}
 .pack-particle{position:absolute;top:50%;left:50%;border-radius:50%;pointer-events:none;animation:pBurst linear forwards;}
+@keyframes pFlash{0%{opacity:1;}100%{opacity:0;}}
 @keyframes pBurst{0%{opacity:1;transform:translate(-50%,-50%) translate(0,0) scale(1);}100%{opacity:0;transform:translate(-50%,-50%) translate(var(--px),var(--py)) scale(0);}}
+/* Per-collection booster glows on #booster-anim */
+#booster-anim.col-eclipse{--gc:rgba(157,0,255,.9);}
+#booster-anim.col-ninja{--gc:rgba(255,60,0,.8);}
+#booster-anim.col-rider{--gc:rgba(0,255,150,.6);}
+#booster-anim.col-special{--gc:rgba(255,215,0,1);}
+#booster-anim.col-classic{--gc:rgba(0,210,255,.7);}
 /* CARD 3D */
 #focus-overlay{position:fixed;inset:0;background:radial-gradient(circle at center,#1a1a1a,#000);display:none;justify-content:center;align-items:center;z-index:8000;perspective:1500px;touch-action:none;}
 .c3d{width:300px;height:440px;position:relative;transform-style:preserve-3d;transition:transform .1s ease-out;}
@@ -338,6 +352,47 @@ body.theme-night .card-thumb.is-ninja{box-shadow:0 0 12px rgba(157,0,255,.5);}
 .chat-input-row{display:flex;gap:8px;padding:10px;border-top:1px solid #1a1a1a;}
 .chat-input-row input{flex:1;padding:10px;background:#0a0a0a;border:1px solid #222;color:#fff;border-radius:10px;}
 .chat-send{background:var(--primary);border:none;color:#000;padding:10px 16px;border-radius:10px;font-weight:700;cursor:pointer;}
+
+/* ===== DUEL CARTES PERSO ===== */
+#duel-card-modal{position:fixed;inset:0;z-index:32000;display:none;background:rgba(0,0,0,.97);justify-content:center;align-items:center;overflow-y:auto;padding:16px;}
+.duel-select-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0;max-height:240px;overflow-y:auto;}
+.duel-pick-card{background:#0a0a0a;border:2px solid #222;border-radius:10px;padding:8px;text-align:center;cursor:pointer;transition:all .2s;}
+.duel-pick-card:hover,.duel-pick-card.sel{border-color:var(--primary);background:rgba(0,210,255,.06);}
+.duel-pick-card.sel{box-shadow:0 0 12px rgba(0,210,255,.4);}
+.duel-pick-card img{width:100%;height:70px;object-fit:cover;border-radius:6px;display:block;}
+.duel-pick-card .dpc-name{font-size:.55rem;font-weight:700;margin-top:3px;color:#ccc;}
+.duel-pick-card .dpc-rarity{font-size:.48rem;margin-top:1px;}
+.duel-arena{display:flex;gap:12px;align-items:flex-start;justify-content:center;}
+.duel-slot{width:130px;border-radius:12px;border:2px solid #333;overflow:hidden;background:#0a0a0a;transition:border-color .3s,box-shadow .3s;}
+.duel-slot.mine{border-color:var(--primary);}
+.duel-slot.theirs{border-color:#ff0055;}
+.duel-slot.winner{animation:duelWin 1s ease-in-out infinite alternate;}
+@keyframes duelWin{from{box-shadow:0 0 20px rgba(57,255,20,.5);}to{box-shadow:0 0 40px rgba(57,255,20,.9);}}
+.duel-card-img{width:100%;height:120px;object-fit:cover;display:block;}
+.duel-card-info{padding:6px 8px;}
+.duel-card-name{font-size:.68rem;font-weight:700;color:#fff;}
+.duel-card-rarity{font-size:.55rem;margin-top:1px;}
+.duel-card-stats{font-size:.6rem;color:var(--primary);font-weight:700;margin-top:2px;}
+.duel-vote-bar{display:flex;height:10px;border-radius:8px;overflow:hidden;border:1px solid #222;}
+.duel-vote-mine{background:var(--primary);transition:width .6s ease;}
+.duel-vote-theirs{background:#ff0055;flex:1;transition:width .6s ease;}
+.duel-vote-label{display:flex;justify-content:space-between;font-size:.62rem;color:#888;margin-top:4px;padding:0 2px;}
+
+/* ===== STUDIO GALLERY ENHANCED ===== */
+.studio-gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.sgal-item{position:relative;border-radius:8px;overflow:hidden;border:1px solid #222;cursor:pointer;transition:border-color .2s;}
+.sgal-item:hover{border-color:var(--primary);}
+.sgal-item img{width:100%;height:80px;object-fit:cover;display:block;}
+.sgal-meta{padding:4px 6px;background:#0a0a0a;}
+.sgal-meta .sgal-pseudo{font-size:.5rem;color:#666;}
+.sgal-like-btn{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);border:1px solid #444;color:#fff;border-radius:20px;padding:3px 7px;font-size:.55rem;cursor:pointer;display:flex;align-items:center;gap:3px;transition:all .2s;}
+.sgal-like-btn.liked{border-color:#ff5566;color:#ff5566;background:rgba(255,85,102,.1);}
+.sgal-like-btn:hover{border-color:#ff5566;}
+
+/* ===== ECLIPSE BOOSTER ===== */
+.eclipse-pack-btn{border-color:#9d00ff!important;color:#9d00ff;background:rgba(157,0,255,.08)!important;animation:eclipseGlow 1.5s infinite alternate;}
+@keyframes eclipseGlow{from{box-shadow:0 0 8px rgba(157,0,255,.4),0 0 20px rgba(157,0,255,.1);}to{box-shadow:0 0 20px rgba(157,0,255,.8),0 0 40px rgba(157,0,255,.3);}}
+
 </style>
 </head>
 <body>
@@ -472,18 +527,21 @@ body.theme-night .card-thumb.is-ninja{box-shadow:0 0 12px rgba(157,0,255,.5);}
     <div class="pack-btn" style="border-color:gold;animation:goldTabGlow 2s infinite alternate;" onclick="preparePack('special')">✦ PACK SPÉCIAL EXCLUSIF</div>
   </div>
   <div id="ps-night" style="display:none;">
-    <div class="pack-btn night-pack-btn" onclick="preparePack('eclipse')">🌑 PACK ÉCLIPSE</div>
+    <div class="pack-btn night-pack-btn" onclick="preparePack('eclipse')" class="eclipse-pack-btn">🌑 PACK ÉCLIPSE</div>
   </div>
   <button onclick="closeModal('pack-sel')" style="background:none;border:none;color:#fff;margin-top:16px;cursor:pointer;">RETOUR</button>
 </div>
 <!-- BOOSTER ANIM -->
 <div id="booster-anim">
+  <div id="pack-collection-label" style="font-size:.62rem;letter-spacing:4px;color:#555;margin-bottom:8px;font-weight:700;"></div>
   <div id="pack-glow"></div>
   <div id="pack-tap-hint">APPUIE POUR OUVRIR</div>
   <div class="pack-wrapper" id="pack-wrap" onclick="triggerRip()">
     <img id="pack-img-full" src="face_booster_classique.png" alt="" onerror="this.style.opacity='.3'">
-    <div class="pack-holo"></div>
+    <div class="pack-holo" id="pack-holo-layer"></div>
+    <canvas id="pack-sparkle-canvas" style="position:absolute;inset:0;pointer-events:none;border-radius:16px;"></canvas>
   </div>
+  <div id="pack-rarity-hint" style="font-size:.55rem;color:#333;margin-top:10px;letter-spacing:2px;height:16px;"></div>
 </div>
 <!-- RARITY MENU -->
 <div id="rarity-menu">
@@ -697,16 +755,74 @@ body.theme-night .card-thumb.is-ninja{box-shadow:0 0 12px rgba(157,0,255,.5);}
   </div>
 </div>
 <!-- BATTLE -->
-<div id="battle-modal" class="modal">
-  <div class="mbox">
-    <h2 style="color:#ff0055;margin-bottom:5px;">⚔️ COMBAT STUDIO</h2>
-    <p style="font-size:.68rem;color:gray;margin-bottom:12px;">Ta meilleure création vs la leur !</p>
-    <div style="display:flex;gap:12px;justify-content:center;align-items:center;" id="battle-cards"></div>
-    <div style="margin-top:12px;font-size:.72rem;color:#555;" id="battle-votes"></div>
-    <button class="pbtn" style="margin-top:12px;" onclick="voteBattle()">❤️ VOTER</button>
-    <button class="mbtn" onclick="closeModal('battle-modal')">FERMER</button>
+<!-- DUEL CARTES PERSO - Fullscreen -->
+<div id="duel-card-modal">
+  <div style="width:100%;max-width:360px;text-align:center;">
+    <h2 style="color:#ff0055;margin-bottom:2px;font-size:1.1rem;">⚔️ DUEL DE CARTES</h2>
+    <p id="duel-status" style="font-size:.7rem;color:#888;margin-bottom:12px;">Choisis ta carte de combat</p>
+
+    <!-- Phase 1: Sélection de carte -->
+    <div id="duel-phase-select">
+      <div class="sec-h" style="text-align:center;">TA CARTE DE COMBAT :</div>
+      <div class="duel-select-grid" id="duel-card-picker"></div>
+      <button id="duel-confirm-btn" class="pbtn" style="margin-top:12px;opacity:.4;" disabled onclick="confirmDuelCard()">CONFIRMER ⚔️</button>
+    </div>
+
+    <!-- Phase 2: Combat -->
+    <div id="duel-phase-fight" style="display:none;">
+      <div class="duel-arena">
+        <div>
+          <div style="font-size:.65rem;color:var(--primary);margin-bottom:4px;font-weight:700;">MA CARTE</div>
+          <div class="duel-slot mine" id="duel-my-slot">
+            <img class="duel-card-img" id="duel-my-img" src="" alt="">
+            <div class="duel-card-info">
+              <div class="duel-card-name" id="duel-my-name"></div>
+              <div class="duel-card-rarity" id="duel-my-rarity"></div>
+              <div class="duel-card-stats" id="duel-my-pts"></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding-top:40px;">
+          <div style="font-size:2rem;">⚡</div>
+          <div style="font-size:.65rem;color:#555;">VS</div>
+        </div>
+        <div>
+          <div style="font-size:.65rem;color:#ff0055;margin-bottom:4px;font-weight:700;" id="duel-opp-label">ADVERSAIRE</div>
+          <div class="duel-slot theirs" id="duel-their-slot">
+            <img class="duel-card-img" id="duel-their-img" src="" alt="">
+            <div class="duel-card-info">
+              <div class="duel-card-name" id="duel-their-name"></div>
+              <div class="duel-card-rarity" id="duel-their-rarity"></div>
+              <div class="duel-card-stats" id="duel-their-pts"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Votes bar -->
+      <div class="duel-vote-bar" id="duel-bar" style="margin-top:16px;">
+        <div class="duel-vote-mine" id="duel-bar-mine" style="width:50%;"></div>
+        <div class="duel-vote-theirs" id="duel-bar-theirs" style="width:50%;"></div>
+      </div>
+      <div class="duel-vote-label">
+        <span id="duel-votes-mine">0 vote</span>
+        <span id="duel-result-label" style="color:#888;">-</span>
+        <span id="duel-votes-theirs">0 vote</span>
+      </div>
+
+      <div id="duel-vote-btns" style="display:flex;gap:10px;justify-content:center;margin-top:4px;">
+        <button onclick="castDuelVote('mine')" style="flex:1;background:rgba(0,210,255,.15);border:1px solid var(--primary);color:var(--primary);padding:10px;border-radius:12px;font-weight:700;cursor:pointer;font-size:.8rem;">❤️ VOTER POUR MOI</button>
+        <button onclick="castDuelVote('theirs')" style="flex:1;background:rgba(255,0,85,.12);border:1px solid #ff0055;color:#ff0055;padding:10px;border-radius:12px;font-weight:700;cursor:pointer;font-size:.8rem;">❤️ VOTER POUR EUX</button>
+      </div>
+      <div id="duel-voted-msg" style="display:none;font-size:.75rem;color:#39ff14;margin-top:10px;text-align:center;">✓ Vote enregistré !</div>
+    </div>
+
+    <button onclick="closeModal('duel-card-modal')" style="background:none;border:none;color:#555;margin-top:16px;cursor:pointer;font-size:.78rem;">FERMER</button>
   </div>
 </div>
+
+<!-- Legacy battle modal kept for compatibility -->
+<div id="battle-modal" class="modal" style="display:none;"></div>
 <!-- NICKNAME -->
 <div id="nick-modal" class="modal">
   <div class="mbox">
@@ -717,6 +833,36 @@ body.theme-night .card-thumb.is-ninja{box-shadow:0 0 12px rgba(157,0,255,.5);}
     <button class="mbtn" onclick="closeModal('nick-modal')">PASSER</button>
   </div>
 </div>
+
+<!-- BERZERK FULLSCREEN OVERLAY -->
+<div id="berzerk-overlay">
+  <div class="bz-title">⚡ BERZERK !</div>
+  <div class="bz-sub">TAPE 50 FOIS EN 5 SECONDES !</div>
+  <div class="bz-counter" id="bz-count">0</div>
+  <div class="bz-timer" id="bz-timer">5.0s</div>
+  <div class="bz-tap" id="bz-tap" ontouchstart="berzerkTap(event)" onmousedown="berzerkTap(event)">⚡</div>
+  <div class="bz-bar-wrap"><div class="bz-bar-fill" id="bz-bar" style="width:0%"></div></div>
+  <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-top:16px;">SUPER CHARGE = 0% STANDARD !</div>
+</div>
+
+<!-- BACKPACK ITEM DETAIL MODAL -->
+<div id="bp-item-modal">
+  <div class="bp-item-card">
+    <div class="bp-item-bigicon" id="bpim-icon">🔍</div>
+    <div class="bp-item-title" id="bpim-title">Loupe</div>
+    <div class="bp-item-desc" id="bpim-desc">Description</div>
+    <div class="bp-item-effect" id="bpim-effect">Effet</div>
+    <div class="bp-item-actions">
+      <button id="bpim-use-btn" style="flex:1;background:var(--primary);border:none;color:#000;padding:10px;border-radius:10px;font-weight:700;cursor:pointer;" onclick="confirmUseItem()">UTILISER</button>
+      <button style="flex:1;background:#222;border:1px solid #444;color:#888;padding:10px;border-radius:10px;cursor:pointer;" onclick="closeModal('bp-item-modal')">ANNULER</button>
+    </div>
+    <div id="bpim-qty" style="font-size:.65rem;color:#555;margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS PANEL -->
+<div id="notif-panel"></div>
+
 <!-- BOTTOM BAR -->
 <div id="bottom-bar">
   <div class="brow">
@@ -741,6 +887,7 @@ let successes={},myPseudo='',profileCard=null,showcase=[],nicknames={};
 let gyroEnabled=false,radarTargets=[],currentPendingLgdId=null;
 let timerInterval=null,currentTab='classic',currentPackCollection='classic';
 let currentTheme='default',packOpenTimestamps=[],berzerkCount=0,berzerkTimer=null;
+let pendingMember=null,pendingRarity=null;
 let superCharge=false;
 let backpackItems={},equippedPassives={},activeMissions={};
 let chatTargetId=null,chatTargetData={};
@@ -854,7 +1001,7 @@ function openDex(){
     const thBtn=document.getElementById('theme-btn');if(thBtn)thBtn.style.display='block';
     const intro=document.getElementById('intro-screen');if(intro)intro.classList.add('opened');
     setTimeout(()=>{const i=document.getElementById('intro-screen');if(i)i.style.display='none';},800);
-    checkNightMode();updateGrid();spawnBerzerk();
+    checkNightMode();updateGrid();spawnBerzerk();setTimeout(scheduleEnergyNotif,2000);
   }catch(e){console.error('openDex error:',e);}
 }
 
@@ -1087,16 +1234,174 @@ async function sendChatMsg(){
   const input=document.getElementById('chat-input');const text=input.value.trim();if(!text)return;
   input.value='';const roomId=[user.uid,chatTargetId].sort().join('_');
   const pseudo=myPseudo||user.email.split('@')[0];
-  try{await window.dbSet(window.dbDoc(window.db,'chats',roomId,'messages',user.uid+'_'+Date.now()),{uid:user.uid,pseudo,text,ts:Date.now()});loadChatMessages(chatTargetId);vibrate([20]);}catch(e){toast('Erreur envoi.');}
+  try{await window.dbSet(window.dbDoc(window.db,'chats',roomId,'messages',user.uid+'_'+Date.now()),{uid:user.uid,pseudo,text,ts:Date.now()});loadChatMessages(chatTargetId);vibrate([20]);showNotif('Message envoye','Ton message a ete envoye a '+chatTargetData.pseudo,'message');}catch(e){toast('Erreur envoi.');}
 }
+// ===== DUEL CARTES PERSONNALISÉES =====
+let duelMyCard=null,duelOpponentId=null,duelRoomId=null,duelMyVoted=false;
+let bzActive=false,bzInterval=null,bzTimeLeft=5,bzTapCount=0;
+
 function openCardBattle(){
-  document.getElementById('battle-modal').style.display='flex';const el=document.getElementById('battle-cards');el.innerHTML='';
-  el.style.cssText='display:flex;gap:8px;justify-content:center;align-items:center;';
-  const mk=(lbl,col)=>{const d=document.createElement('div');d.style.cssText='width:90px;text-align:center;';d.innerHTML='<div style="font-size:.62rem;color:'+col+';margin-bottom:4px;">'+lbl+'</div><div style="width:80px;height:110px;background:#111;border:2px solid '+col+';border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:2rem;">'+(lbl==='MOI'?'🏆':'⚔️')+'</div>';return d;};
-  el.appendChild(mk('MOI','var(--primary)'));const vs=document.createElement('div');vs.style.cssText='font-size:1.4rem;';vs.innerText='⚡';el.appendChild(vs);el.appendChild(mk(chatTargetData.pseudo||'?','#ff0055'));
-  document.getElementById('battle-votes').innerText='Vote pour la meilleure creation !';
+  // Open the proper duel modal
+  duelMyCard=null;duelMyVoted=false;
+  const modal=document.getElementById('duel-card-modal');if(!modal)return;
+  modal.style.display='flex';
+  document.getElementById('duel-phase-select').style.display='block';
+  document.getElementById('duel-phase-fight').style.display='none';
+  document.getElementById('duel-status').innerText='Choisis ta meilleure carte de combat';
+  document.getElementById('duel-confirm-btn').disabled=true;
+  document.getElementById('duel-confirm-btn').style.opacity='0.4';
+  duelOpponentId=chatTargetId;
+  buildDuelPicker();
 }
-function voteBattle(){toast('Vote enregistre !');closeModal('battle-modal');if(Math.random()<.5){charges=Math.min(5,charges+1);updateEnergySystem();toast('+1 Charge !');}}
+function voteBattle(){openCardBattle();}// legacy alias
+
+function buildDuelPicker(){
+  const grid=document.getElementById('duel-card-picker');if(!grid)return;grid.innerHTML='';
+  // Show all owned cards sorted by pts desc
+  const owned=[];
+  allMembers().forEach(m=>{
+    const inv=userInventory[m.id]||{};
+    ['code','legendary','epic','metal','standard'].forEach(r=>{
+      if(inv[r])owned.push({m,rarity:r,pts:(RARITIES_INFO[r]||{pts:1}).pts});
+    });
+  });
+  owned.sort((a,b)=>b.pts-a.pts);
+  owned.slice(0,18).forEach(({m,rarity,pts})=>{
+    const ri=RARITIES_INFO[rarity]||{color:'#aaa',label:'STD'};
+    const div=document.createElement('div');div.className='duel-pick-card';
+    div.innerHTML='<img src="'+getFrontImg(m)+'" onerror="this.style.opacity=\'.3\'">'
+      +'<div class="dpc-name">'+(m.isNinja?'N ':m.isRider?'R ':m.isSpecial?'★ ':'')+m.name.toUpperCase()+'</div>'
+      +'<div class="dpc-rarity" style="color:'+ri.color+';">'+ri.label+' ('+pts+'pts)</div>';
+    div.onclick=()=>selectDuelCard(div,m,rarity,pts);
+    grid.appendChild(div);
+  });
+}
+function selectDuelCard(el,m,rarity,pts){
+  document.querySelectorAll('.duel-pick-card').forEach(d=>d.classList.remove('sel'));
+  el.classList.add('sel');
+  duelMyCard={m,rarity,pts};
+  document.getElementById('duel-confirm-btn').disabled=false;
+  document.getElementById('duel-confirm-btn').style.opacity='1';
+}
+async function confirmDuelCard(){
+  if(!duelMyCard)return;
+  document.getElementById('duel-phase-select').style.display='none';
+  document.getElementById('duel-phase-fight').style.display='block';
+  document.getElementById('duel-status').innerText='Combat en cours !';
+  // Show my card
+  const ri=RARITIES_INFO[duelMyCard.rarity]||{color:'#aaa',label:'STD'};
+  document.getElementById('duel-my-img').src=getFrontImg(duelMyCard.m);
+  document.getElementById('duel-my-name').innerText=duelMyCard.m.name.toUpperCase();
+  document.getElementById('duel-my-rarity').style.color=ri.color;
+  document.getElementById('duel-my-rarity').innerText=ri.label;
+  document.getElementById('duel-my-pts').innerText=duelMyCard.pts+' pts';
+  // Save my card to Firebase duel room
+  if(window._fbReady&&window.auth.currentUser){
+    duelRoomId=[window.auth.currentUser.uid,duelOpponentId].sort().join('_duel_');
+    try{
+      await window.dbSet(window.dbDoc(window.db,'duels',duelRoomId),{
+        [window.auth.currentUser.uid]:{
+          memberId:duelMyCard.m.id,rarity:duelMyCard.rarity,pts:duelMyCard.pts,
+          pseudo:myPseudo||window.auth.currentUser.email.split('@')[0],
+          votes:0
+        },ts:Date.now()
+      },{merge:true});
+      // Listen for opponent's card
+      loadDuelOpponent();
+    }catch(e){showDuelOffline();}
+  }else{showDuelOffline();}
+}
+async function loadDuelOpponent(){
+  if(!duelRoomId||!window._fbReady)return;
+  try{
+    const snap=await window.dbGetDoc(window.dbDoc(window.db,'duels',duelRoomId));
+    const data=snap.data()||{};
+    const oppData=data[duelOpponentId];
+    if(oppData){
+      const oppM=allMembers().find(x=>x.id===oppData.memberId)||{name:'?',icon:'?',isNinja:false,isRider:false,isSpecial:false};
+      const oppRi=RARITIES_INFO[oppData.rarity]||{color:'#aaa',label:'STD'};
+      document.getElementById('duel-their-img').src=getFrontImg(oppM);
+      document.getElementById('duel-their-name').innerText=(oppData.pseudo||'?').toUpperCase();
+      document.getElementById('duel-their-rarity').style.color=oppRi.color;
+      document.getElementById('duel-their-rarity').innerText=oppRi.label;
+      document.getElementById('duel-their-pts').innerText=oppData.pts+' pts';
+      document.getElementById('duel-opp-label').innerText=(oppData.pseudo||'?').toUpperCase();
+      // Load votes
+      const myVotes=data[window.auth.currentUser.uid]?.votes||0;
+      const theirVotes=oppData.votes||0;
+      updateDuelBar(myVotes,theirVotes);
+      document.getElementById('duel-status').innerText='Vote pour la meilleure carte !';
+    }else{
+      document.getElementById('duel-their-name').innerText='En attente...';
+      document.getElementById('duel-status').innerText='En attente de l\'adversaire...';
+      // Poll for 30s
+      let polls=0;
+      const pi=setInterval(async()=>{
+        polls++;if(polls>30){clearInterval(pi);showDuelOffline();return;}
+        await loadDuelOpponent();
+        const snap2=await window.dbGetDoc(window.dbDoc(window.db,'duels',duelRoomId));
+        if(snap2.data()?.[duelOpponentId]){clearInterval(pi);loadDuelOpponent();}
+      },1000);
+    }
+  }catch(e){showDuelOffline();}
+}
+function showDuelOffline(){
+  // Simulate opponent with random card
+  const ownedOpponent=allMembers().filter(m=>Object.values(userInventory[m.id]||{}).some(v=>v));
+  if(ownedOpponent.length===0){document.getElementById('duel-status').innerText='Pas de carte adverse.';return;}
+  const oppM=ownedOpponent[Math.floor(Math.random()*ownedOpponent.length)];
+  const rarities=['standard','metal','epic','legendary'].filter(r=>userInventory[oppM.id]?.[r]);
+  const oppR=rarities[Math.floor(Math.random()*rarities.length)]||'standard';
+  const oppRi=RARITIES_INFO[oppR]||{color:'#aaa',label:'STD'};
+  document.getElementById('duel-their-img').src=getFrontImg(oppM);
+  document.getElementById('duel-their-name').innerText=(chatTargetData.pseudo||'?').toUpperCase();
+  document.getElementById('duel-their-rarity').style.color=oppRi.color;
+  document.getElementById('duel-their-rarity').innerText=oppRi.label;
+  document.getElementById('duel-their-pts').innerText=(RARITIES_INFO[oppR]?.pts||1)+' pts';
+  document.getElementById('duel-opp-label').innerText=(chatTargetData.pseudo||'?').toUpperCase();
+  updateDuelBar(0,0);
+  document.getElementById('duel-status').innerText='Vote pour la meilleure carte !';
+}
+async function castDuelVote(side){
+  if(duelMyVoted)return;
+  duelMyVoted=true;
+  document.getElementById('duel-vote-btns').style.display='none';
+  document.getElementById('duel-voted-msg').style.display='block';
+  if(window._fbReady&&duelRoomId){
+    try{
+      const uid=side==='mine'?window.auth.currentUser.uid:duelOpponentId;
+      const snap=await window.dbGetDoc(window.dbDoc(window.db,'duels',duelRoomId));
+      const cur=(snap.data()?.[uid]?.votes)||0;
+      await window.dbSet(window.dbDoc(window.db,'duels',duelRoomId),{[uid]:{votes:cur+1}},{merge:true});
+      await loadDuelOpponent();
+    }catch(e){}
+  }else{
+    const myV=side==='mine'?1:0,thV=side==='theirs'?1:0;
+    updateDuelBar(myV,thV);
+  }
+  // Reward winner
+  if(side==='mine'){charges=Math.min(5,charges+1);updateEnergySystem();showNotif('Duel gagne !','Tu as vote pour ta carte et gagné +1 Charge !','win');}
+}
+function updateDuelBar(myV,theirV){
+  const total=myV+theirV;
+  const myPct=total===0?50:Math.round(myV/total*100);
+  const thPct=100-myPct;
+  document.getElementById('duel-bar-mine').style.width=myPct+'%';
+  const tb=document.getElementById('duel-bar-theirs');if(tb)tb.style.width=thPct+'%';
+  document.getElementById('duel-votes-mine').innerText=myV+' vote'+(myV!==1?'s':'');
+  document.getElementById('duel-votes-theirs').innerText=theirV+' vote'+(theirV!==1?'s':'');
+  const rl=document.getElementById('duel-result-label');
+  if(rl){
+    if(myV>theirV)rl.innerText='Tu menes !';
+    else if(theirV>myV)rl.innerText='Adversaire mene...';
+    else rl.innerText='Egalite !';
+    rl.style.color=myV>=theirV?'#39ff14':'#ff0055';
+  }
+  // Highlight winner slot
+  const ms=document.getElementById('duel-my-slot'),ts=document.getElementById('duel-their-slot');
+  if(ms&&ts){ms.classList.toggle('winner',myV>theirV);ts.classList.toggle('winner',theirV>myV);}
+}
+
 
 const MARKET_POOL=[
   {memberId:'malo',  rarity:'epic',    label:'Malo Epique',   pts:25},
@@ -1203,7 +1508,10 @@ let sparkInterval=null;
 
 function openCard(m,rarity,isPop){
   if(!overlay)return;
-  overlay.style.display='flex';document.body.classList.add('card-open');
+  // Force display and make sure it's on top of everything
+  overlay.style.display='flex';
+  overlay.style.zIndex='8000';
+  document.body.classList.add('card-open');
   curRotY=0;curRotX=0;updateCardTransform();
   if(sparkInterval){clearInterval(sparkInterval);sparkInterval=null;}
   if(isPop){const c3=document.getElementById('card-3d');if(c3){c3.classList.add('reveal-pop');setTimeout(()=>c3.classList.remove('reveal-pop'),800);}}
@@ -1278,12 +1586,6 @@ function showSpecialCelebration(){
 }
 function closeCelebration(){closeModal('special-unlock');const sc=document.getElementById('su-canvas');if(sc)sc.getContext('2d').clearRect(0,0,10000,10000);openCard(specialMembers[0],'code',true);}
 
-function claimDaily(){
-  if(!window._fbReady||!window.auth||!window.auth.currentUser)return alert('Connecte-toi - assure-toi d\'avoir une connexion internet !');
-  if(!canDaily()){const n=new Date();const tmrw=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);const rem=tmrw-n;return toast('Revient a minuit (dans '+Math.floor(rem/3600000)+'h '+Math.floor((rem%3600000)/60000)+'m)');}
-  lastDaily=Date.now();charges=Math.min(charges+1,5);successes.daily_count=(successes.daily_count||0)+1;
-  saveData();updateEnergySystem();checkSuccesses();toast('BONUS : +1 Charge !');vibrate([40,20,60,20,100]);
-}
 
 
 
@@ -1330,29 +1632,116 @@ function openPackSel(){
   const titles={ninja:'PACK NINJA',rider:'PACK RIDER',special:'PACK SPECIAL'};
   const pt=document.getElementById('pack-sel-title');if(pt)pt.innerText=titles[currentTab]||'CHOISIR UN PACK';
 }
+// Collection config for booster atmosphere
+const PACK_CONFIGS={
+  classic:{img:'face_booster_classique.png', glow:'rgba(0,210,255,.7)',  bg:'radial-gradient(ellipse at 50% 45%,rgba(0,80,160,.5),#000 70%)',  label:'PACK CLASSIQUE',  holoColor:'rgba(0,210,255,.3)',  particles:['#00d2ff','#fff','#50b4ff']},
+  all:    {img:'face_booster_classique.png', glow:'rgba(255,255,255,.5)',bg:'radial-gradient(ellipse at 50% 45%,rgba(40,40,80,.6),#000 70%)', label:'TOUTES COLLECTIONS',holoColor:'rgba(255,255,255,.2)',particles:['#fff','#00d2ff','gold']},
+  ninja:  {img:'face_booster_ninja.png',     glow:'rgba(255,60,0,.8)',   bg:'radial-gradient(ellipse at 50% 45%,rgba(80,10,0,.7),#000 70%)',   label:'PACK NINJA',      holoColor:'rgba(255,60,0,.3)',    particles:['#ff3300','#ff6b00','#ffcc00']},
+  eclipse:{img:'face_booster_eclipse.png',   glow:'rgba(120,0,255,.9)',  bg:'radial-gradient(ellipse at 50% 45%,rgba(30,0,60,.8),#000 70%)',   label:'PACK ECLIPSE',    holoColor:'rgba(157,0,255,.4)',   particles:['#9d00ff','#ff00ff','#00d2ff','#fff']},
+  rider:  {img:'face_booster_rider.png',     glow:'rgba(0,255,150,.6)',  bg:'radial-gradient(ellipse at 50% 45%,rgba(0,60,40,.6),#000 70%)',   label:'PACK RIDER',      holoColor:'rgba(0,255,170,.3)',   particles:['#00ffaa','#00d2ff','#fff']},
+  special:{img:'face_booster_speciale.png',  glow:'rgba(255,215,0,1.0)', bg:'radial-gradient(ellipse at 50% 45%,rgba(80,60,0,.8),#000 70%)',   label:'PACK SPÉCIAL ✦',  holoColor:'rgba(255,215,0,.5)',   particles:['gold','#fff','#ffcc00','#ff6b00']},
+};
+let packSparkleAnimId=null;
+
 function preparePack(col){
   if(!window._fbReady||!window.auth||!window.auth.currentUser)return alert('Connecte-toi !');
   if(charges<=0)return alert('Plus de charges !');
   currentPackCollection=col;
   const el=document.getElementById('pack-sel');if(el)el.style.display='none';
-  const imgs={ninja:'face_booster_ninja.png',eclipse:'face_booster_ninja.png',rider:'face_booster_rider.png',special:'face_booster_speciale.png'};
-  const img=document.getElementById('pack-img-full');if(img)img.src=imgs[col]||'face_booster_classique.png';
-  const glows={ninja:'rgba(255,80,0,.6)',eclipse:'rgba(157,0,255,.6)',rider:'rgba(0,255,170,.5)',special:'rgba(255,215,0,.9)'};
-  const gc=glows[col]||'rgba(0,210,255,.5)';
+
+  const cfg=PACK_CONFIGS[col]||PACK_CONFIGS.classic;
+
+  // Set image
+  const img=document.getElementById('pack-img-full');
+  if(img){img.src=cfg.img;img.style.opacity='1';img.style.filter='drop-shadow(0 0 24px '+cfg.glow+')';}
+
+  // Set background
+  const ba=document.getElementById('booster-anim');
+  if(ba){
+    ba.style.background=cfg.bg;
+    ba.style.display='flex';
+    ba.className='col-'+col;
+  }
+
+  // Set glow
   const pg=document.getElementById('pack-glow');
-  if(pg)pg.style.cssText='position:absolute;width:280px;height:440px;border-radius:18px;pointer-events:none;z-index:0;animation:packGlowPulse 2.2s ease-in-out infinite alternate;box-shadow:0 0 80px '+gc+',0 0 160px '+gc+';';
-  const ba=document.getElementById('booster-anim');if(ba)ba.style.display='flex';
+  if(pg)pg.style.cssText='position:absolute;width:280px;height:440px;border-radius:18px;pointer-events:none;z-index:0;animation:packGlowPulse 2.2s ease-in-out infinite alternate;box-shadow:0 0 90px '+cfg.glow+',0 0 200px '+cfg.glow+';';
+
+  // Set holo color
+  const hl=document.getElementById('pack-holo-layer');
+  if(hl)hl.style.background='linear-gradient(115deg,transparent 20%,'+cfg.holoColor+' 38%,rgba(255,255,255,.25) 50%,'+cfg.holoColor+' 62%,transparent 80%)';
+
+  // Set collection label
+  const lbl=document.getElementById('pack-collection-label');
+  if(lbl){lbl.innerText=cfg.label;lbl.style.color=cfg.glow.replace(/[^,]+\)$/,'1)');}
+
+  // Set hint text with collection-specific message
+  const hints={ninja:'OMBRE DANS LA NUIT...',eclipse:'LA LUNE EST PLEINE...',rider:'MOTEUR EN MARCHE...',special:'CARTE UNIQUE AU MONDE...',classic:'TIRE TON DESTIN...',all:'LA COLLECTION COMPLETE...'};
+  const rh=document.getElementById('pack-rarity-hint');
+  if(rh)rh.innerText=hints[col]||'TIRE TON DESTIN...';
+
+  // Start sparkle canvas animation
+  startPackSparkle(cfg.particles);
+}
+
+function startPackSparkle(colors){
+  if(packSparkleAnimId){cancelAnimationFrame(packSparkleAnimId);packSparkleAnimId=null;}
+  const cv=document.getElementById('pack-sparkle-canvas');if(!cv)return;
+  const wrap=document.getElementById('pack-wrap');
+  cv.width=wrap?wrap.offsetWidth:260;cv.height=wrap?wrap.offsetHeight:420;
+  const ctx=cv.getContext('2d');
+  const sparks=[];
+  for(let i=0;i<18;i++)sparks.push({
+    x:Math.random()*cv.width,y:Math.random()*cv.height,
+    vx:(Math.random()-.5)*.6,vy:-(0.2+Math.random()*.5),
+    r:1+Math.random()*2.5,a:Math.random(),ph:Math.random()*Math.PI*2,
+    color:colors[Math.floor(Math.random()*colors.length)]
+  });
+  function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    sparks.forEach(s=>{
+      s.x+=s.vx;s.y+=s.vy;s.ph+=0.05;
+      const a=0.3+0.5*Math.abs(Math.sin(s.ph));
+      if(s.y<-5){s.y=cv.height+5;s.x=Math.random()*cv.width;}
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=s.color;ctx.globalAlpha=a;ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    packSparkleAnimId=requestAnimationFrame(draw);
+  }
+  draw();
 }
 function spawnPackParticles(rarity){
   const wrap=document.getElementById('pack-wrap');if(!wrap)return;
-  const pcols={legendary:['gold','#fffacd','#fff'],epic:['#ff6b00','#ffcc00','#ff3300'],metal:['#50b4ff','#b0d8ff','#fff'],code:['gold','#00ffcc','#00ff88','#fff'],standard:['#fff','#00d2ff']};
+  const pcols={
+    legendary:['gold','#fffacd','#fff','#ffd700','#ffaa00'],
+    epic:['#ff6b00','#ffcc00','#ff3300','#ff9900','#fff'],
+    metal:['#50b4ff','#b0d8ff','#fff','#00aaff','#aaddff'],
+    code:['gold','#00ffcc','#00ff88','#fff','#00d2ff','#bd00ff'],
+    standard:['#fff','#00d2ff','rgba(255,255,255,.6)']
+  };
   const cols=pcols[rarity]||pcols.standard;
-  for(let i=0;i<28;i++){
-    const p=document.createElement('div');p.className='pack-particle';
-    const angle=Math.random()*Math.PI*2,dist=80+Math.random()*180;
-    const px=Math.cos(angle)*dist,py=Math.sin(angle)*dist,sz=3+Math.random()*8,dur=350+Math.random()*700;
-    p.style.cssText='width:'+sz+'px;height:'+sz+'px;background:'+cols[Math.floor(Math.random()*cols.length)]+';--px:'+px+'px;--py:'+py+'px;animation-duration:'+dur+'ms;';
+  // Burst count based on rarity
+  const count={legendary:50,epic:40,metal:30,code:70,standard:20}[rarity]||20;
+  for(let i=0;i<count;i++){
+    const p=document.createElement('div');
+    const isStar=rarity==='legendary'&&Math.random()<.3;
+    p.className='pack-particle';
+    if(isStar)p.style.borderRadius='2px';
+    const angle=Math.random()*Math.PI*2;
+    const dist=60+Math.random()*220;
+    const px=Math.cos(angle)*dist,py=Math.sin(angle)*dist;
+    const sz=isStar?4+Math.random()*6:2+Math.random()*10;
+    const dur=300+Math.random()*900;
+    const rot=Math.random()*360;
+    p.style.cssText='width:'+sz+'px;height:'+sz+'px;background:'+cols[Math.floor(Math.random()*cols.length)]+';--px:'+px+'px;--py:'+py+'px;animation-duration:'+dur+'ms;transform:rotate('+rot+'deg);';
     wrap.appendChild(p);setTimeout(()=>p.remove(),dur+50);
+  }
+  // Extra flash overlay for legendary/code
+  if(rarity==='legendary'||rarity==='code'){
+    const flash=document.createElement('div');
+    flash.style.cssText='position:absolute;inset:0;border-radius:16px;background:'+(rarity==='code'?'rgba(0,255,200,.25)':'rgba(255,215,0,.3)')+';animation:pFlash .4s ease-out forwards;pointer-events:none;z-index:5;';
+    wrap.appendChild(flash);setTimeout(()=>flash.remove(),450);
   }
 }
 function triggerRip(){
@@ -1383,11 +1772,18 @@ function triggerRip(){
   else userInventory[member.id]={...inv,[rarity]:true};
   saveData();checkSuccesses();
   setTimeout(()=>{
-    const ba=document.getElementById('booster-anim');if(ba)ba.style.display='none';
+    const ba=document.getElementById('booster-anim');if(ba){ba.style.display='none';ba.className='';}
+    if(packSparkleAnimId){cancelAnimationFrame(packSparkleAnimId);packSparkleAnimId=null;}
     pack.classList.remove('ripping');
-    if(rarity==='code')showSpecialCelebration();
-    else if(rarity==='legendary'&&!nicknames[member.id]){currentPendingLgdId=member.id;const nm=document.getElementById('nick-modal');if(nm)nm.style.display='flex';}
-    else openCard(member,rarity,true);
+    // Reset pack image opacity for next use
+    const pimg=document.getElementById('pack-img-full');if(pimg)pimg.style.opacity='1';
+    setTimeout(()=>{
+      if(rarity==='legendary')showNotif('✦ LEGENDAIRE !','Tu as obtenu une carte Legendaire !','pack');
+      else if(rarity==='epic')showNotif('⚡ EPIQUE !','Une carte Epique ! Felicitations !','pack');
+      if(rarity==='code')showSpecialCelebration();
+      else if(rarity==='legendary'&&!nicknames[member.id]){currentPendingLgdId=member.id;const nm=document.getElementById('nick-modal');if(nm)nm.style.display='flex';}
+      else openCard(member,rarity,true);
+    },80);
   },950);
 }
 function saveNickname(){
@@ -1424,7 +1820,7 @@ function startCharge(){
 function stopCharge(){
   if(!sInt)return;clearInterval(sInt);sInt=null;
   const sp=document.getElementById('skill-sphere');if(sp)sp.classList.remove('unstable');
-  if(sLvl>=92&&sLvl<=98){charges=Math.min(3,charges+1);successes.overload_ok=true;showOvResult(true,'STABILISATION !','+1 Charge !');vibrate([60,30,80,30,150,30,200]);}
+  if(sLvl>=92&&sLvl<=98){charges=Math.min(3,charges+1);successes.overload_ok=true;successes.overload_ok_today=true;showOvResult(true,'STABILISATION !','+1 Charge !');vibrate([60,30,80,30,150,30,200]);}
   else if(sLvl>98)showOvResult(false,'TROP TARD',Math.round(sLvl)+'% - vise 92-98%.');
   else showOvResult(false,'INSUFFISANT',Math.round(sLvl)+'% - maintiens plus longtemps.');
   finalizeSkill();
@@ -1520,40 +1916,27 @@ function spawnBerzerk(){
     }
   },300000);
 }
-function berzerkClick(){
-  berzerkCount++;vibrate([10]);
-  if(berzerkTimer)clearTimeout(berzerkTimer);
-  berzerkTimer=setTimeout(()=>berzerkCount=0,5000);
-  if(berzerkCount>=50){superCharge=true;successes.berzerk=true;const btn=document.getElementById('berzerk-btn');if(btn)btn.style.display='none';berzerkCount=0;saveData();checkSuccesses();toast('BERZERK ! 0% Standard prochain pack !',5000);vibrate([100,50,200,50,400,50,600]);}
-}
 
 // ===== QUETES =====
-const QUESTS_POOL=[
-  {label:'Ouvre 3 packs',reward:'+1 Charge',icon:'📦',max:3,progress:()=>packOpenTimestamps.filter(t=>Date.now()-t<86400000).length,done:()=>packOpenTimestamps.filter(t=>Date.now()-t<86400000).length>=3},
-  {label:'Overload parfait',reward:'+1 Charge',icon:'⚡',max:1,progress:()=>(successes.overload_ok?1:0),done:()=>!!successes.overload_ok},
-  {label:'Gagner a la Loterie',reward:'+3 Charges',icon:'🎰',max:1,progress:()=>(successes.q_lotto_win_today?1:0),done:()=>!!successes.q_lotto_win_today},
-  {label:'Obtenir 1 carte Metal',reward:'+1 Charge',icon:'💠',max:1,progress:()=>Object.values(userInventory).filter(v=>v.metal).length,done:()=>Object.values(userInventory).some(v=>v.metal)},
-  {label:'Obtenir 1 carte Epique',reward:'+2 Charges',icon:'⚡',max:1,progress:()=>Object.values(userInventory).filter(v=>v.epic).length,done:()=>Object.values(userInventory).some(v=>v.epic)},
-  {label:'Debloquer 10 cartes',reward:'Succes',icon:'📚',max:10,progress:()=>Math.min(countOwned(),10),done:()=>countOwned()>=10},
-  {label:'Chat avec 1 joueur',reward:'Item',icon:'💬',max:1,progress:()=>(successes.q_chat_today?1:0),done:()=>!!successes.q_chat_today},
-  {label:'Acheter au Marche',reward:'+3 Doublons',icon:'🛒',max:1,progress:()=>(successes.market_bought?1:0),done:()=>!!successes.market_bought},
-  {label:'Bonus quotidien',reward:'Succes',icon:'🌅',max:1,progress:()=>(lastDaily>=midnight()?1:0),done:()=>lastDaily>=midnight()},
-  {label:'Pack la nuit',reward:'Eclipse',icon:'🌑',max:1,progress:()=>(successes.eclipse_pack?1:0),done:()=>!!successes.eclipse_pack},
-  {label:'4 raretes de Malo',reward:'Arc-en-Ciel',icon:'🌈',max:4,progress:()=>{const inv=userInventory['malo']||{};return ['standard','metal','epic','legendary'].filter(r=>inv[r]).length;},done:()=>{const inv=userInventory['malo']||{};return !!(inv.standard&&inv.metal&&inv.epic&&inv.legendary);}},
-  {label:'Lance la roue',reward:'+1 Charge',icon:'🎡',max:1,progress:()=>(lastWheel>=midnight()?1:0),done:()=>lastWheel>=midnight()},
-];
-function getDayQuests(){const seed=midnight();const pool=[...QUESTS_POOL];for(let i=pool.length-1;i>0;i--){const j=(seed*(i+7))%(i+1);[pool[i],pool[j]]=[pool[j],pool[i]];}return pool.slice(0,5);}
-function openQuests(){const el=document.getElementById('quests-modal');if(el)el.style.display='flex';renderQuests();}
-function renderQuests(){
-  const el=document.getElementById('quests-list');if(!el)return;el.innerHTML='';
-  const now=new Date();const qd=document.getElementById('quest-date');if(qd)qd.innerText=now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear();
-  getDayQuests().forEach(q=>{
-    const prog=Math.min(q.progress(),q.max),done=q.done();
-    const d=document.createElement('div');d.className='qitem';d.style.opacity=done?'.5':'1';
-    d.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:.76rem;">'+q.icon+' '+q.label+'</span><span class="qbadge">'+(done?'FAIT':prog+'/'+q.max)+'</span></div><div style="font-size:.6rem;color:#555;margin-top:2px;">'+q.reward+'</div><div class="qbar"><div class="qfill" style="width:'+(prog/q.max*100)+'%;'+(done?'background:#39ff14;':'')+'"></div></div>';
-    el.appendChild(d);
-  });
-}
+
+// ===== COMPLEX QUESTS =====
+
+
+
+// ===== ENHANCED STUDIO =====
+let studioTextMode=false;
+// Add text overlay tool to studio
+
+// Enhanced studio canvas drag for stickers
+
+setTimeout(initStudioDrag,1000);
+
+
+
+
+
+
+
 
 // ===== SAC A DOS =====
 const ITEMS_DEF={
@@ -1580,19 +1963,6 @@ function switchBpTab(tab){
   if(tab==='items')renderBackpackItems();
   else if(tab==='craft'){renderCombineSelects();const cd=document.getElementById('craft-dbl-count');if(cd)cd.innerText=doublonsCount;}
   else if(tab==='missions')renderMissions();
-}
-function renderBackpackItems(){
-  const cats={consumable:'bp-consumables',fun:'bp-fun',passive:'bp-passive'};
-  Object.values(cats).forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
-  Object.entries(ITEMS_DEF).forEach(([key,item])=>{
-    const qty=backpackItems[key]||0,isEq=!!equippedPassives[key];
-    const div=document.createElement('div');
-    div.className='item-slot'+(qty===0?' empty':'')+(isEq?' equipped':'');
-    div.title=item.desc;
-    div.innerHTML='<div class="item-icon">'+item.icon+'</div><div class="item-name">'+item.name+'</div>'+(qty>0?'<div class="item-qty">x'+qty+'</div>':'');
-    if(qty>0)div.onclick=()=>{if(confirm(item.icon+' '+item.name+'\n\n'+item.desc+'\n\n'+(item.cat==='passive'?'EQUIPER?':'UTILISER?')))useItem(key);};
-    const catEl=document.getElementById(cats[item.cat]);if(catEl)catEl.appendChild(div);
-  });
 }
 function useItem(key){
   const item=ITEMS_DEF[key];if(!item||(backpackItems[key]||0)<=0)return toast('Item epuise.');
@@ -1665,13 +2035,6 @@ function openStudio(){
   loadStudioGallery();
   if(studioState.cardId)loadStudioCard();
 }
-function setStudioTool(tool){
-  ['filter','aura','sticker','border','rotate'].forEach(t=>{
-    document.getElementById('stool-'+t)?.classList.toggle('active',t===tool);
-    const p=document.getElementById('studio-'+t+'-panel');
-    if(p)p.style.display=t===tool?(t==='sticker'?'block':'flex'):'none';
-  });
-}
 function loadStudioCard(){
   const id=document.getElementById('studio-card-sel')?.value;if(!id)return;
   studioState.cardId=id;studioState.stickers=[];studioState.rotation=0;
@@ -1725,28 +2088,368 @@ async function publishStudio(){
 }
 async function loadStudioGallery(){
   const el=document.getElementById('studio-gallery');if(!el)return;
-  if(!window._fbReady){el.innerHTML='<p style="color:#333;font-size:.7rem;">Connexion requise.</p>';return;}
+  if(!window._fbReady){el.innerHTML='<p style="color:#555;font-size:.7rem;text-align:center;">Connexion requise.</p>';return;}
+  el.innerHTML='<p style="color:#555;font-size:.7rem;text-align:center;">Chargement...</p>';
   try{
     const snap=await window.dbGetDocs(window.dbCollection(window.db,'studio_gallery'));
-    const items=[];snap.forEach(d=>items.push({...d.data(),id:d.id}));items.sort((a,b)=>b.likes-a.likes);
+    const items=[];snap.forEach(d=>items.push({...d.data(),id:d.id}));
+    items.sort((a,b)=>b.likes-a.likes);
+    el.className='studio-gallery-grid';
     el.innerHTML='';
-    items.slice(0,6).forEach(item=>{const d=document.createElement('div');d.style.cssText='display:inline-flex;flex-direction:column;align-items:center;margin:5px;';d.innerHTML='<img src="'+item.dataUrl+'" style="width:55px;height:75px;border-radius:7px;border:1px solid #333;object-fit:cover;"><div style="font-size:.55rem;color:#555;margin-top:2px;">'+(item.pseudo||'?')+'</div><button onclick="likeStudio(\''+item.id+'\')" style="background:none;border:1px solid #333;color:#ff5566;padding:2px 7px;border-radius:6px;font-size:.58rem;cursor:pointer;margin-top:2px;">❤ '+(item.likes||0)+'</button>';el.appendChild(d);});
-    if(!items.length)el.innerHTML='<p style="color:#333;font-size:.7rem;">Aucune creation.</p>';
-  }catch(e){el.innerHTML='<p style="color:#333;font-size:.7rem;">Erreur.</p>';}
+    let liked=[];try{liked=JSON.parse(localStorage.getItem('slib_liked')||'[]');}catch(e){}
+    if(!items.length){el.innerHTML='<p style="color:#555;font-size:.7rem;grid-column:1/-1;text-align:center;">Sois le premier a publier !</p>';return;}
+    items.slice(0,9).forEach((item,i)=>{
+      const isLiked=liked.includes(item.id);
+      const d=document.createElement('div');d.className='sgal-item';d.style.position='relative';
+      const img=document.createElement('img');img.src=item.dataUrl;img.style.cssText='width:100%;height:80px;object-fit:cover;display:block;';d.appendChild(img);
+      if(i===0){const crown=document.createElement('div');crown.style.cssText='position:absolute;top:4px;left:4px;font-size:.75rem;z-index:2;';crown.innerText='👑';d.appendChild(crown);}
+      const meta=document.createElement('div');meta.className='sgal-meta';meta.innerHTML='<div class="sgal-pseudo">'+(item.pseudo||'?')+'</div>';d.appendChild(meta);
+      const likeBtn=document.createElement('button');likeBtn.className='sgal-like-btn'+(isLiked?' liked':'');
+      likeBtn.innerText=(isLiked?'❤️':'🤍')+' '+(item.likes||0);
+      likeBtn.onclick=(e)=>{e.stopPropagation();likeStudio(item.id);};d.appendChild(likeBtn);
+      d.onclick=()=>previewStudioItem(item);
+      el.appendChild(d);
+    });
+  }catch(e){el.innerHTML='<p style="color:#555;font-size:.7rem;grid-column:1/-1;">Erreur de chargement.</p>';}
 }
 async function likeStudio(id){
   if(!window._fbReady)return;
-  try{const ref=window.dbDoc(window.db,'studio_gallery',id);const snap=await window.dbGetDoc(ref);if(snap.exists())await window.dbSet(ref,{likes:(snap.data().likes||0)+1},{merge:true});loadStudioGallery();}catch(e){}
+  // Prevent double-liking
+  const liked=JSON.parse(localStorage.getItem('slib_liked')||'[]');
+  if(liked.includes(id)){showNotif('Deja like !','Tu as deja vote pour cette creation.','default');return;}
+  try{
+    const ref=window.dbDoc(window.db,'studio_gallery',id);
+    const snap=await window.dbGetDoc(ref);
+    if(snap.exists()){
+      await window.dbSet(ref,{likes:(snap.data().likes||0)+1},{merge:true});
+      liked.push(id);
+      try{localStorage.setItem('slib_liked',JSON.stringify(liked));}catch(e){}
+      showNotif('Like enregistre !','Ton vote compte pour le classement du jour.','win');
+    }
+    loadStudioGallery();
+  }catch(e){}
 }
 
 // ===== DAILY BONUS =====
+function claimDaily(){
+  if(!window.auth||!window.auth.currentUser)return alert('Connecte-toi !');
+  if(!canDaily()){const n=new Date();const tmrw=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);const rem=tmrw-n;return toast('Revient a minuit (dans '+Math.floor(rem/3600000)+'h '+Math.floor((rem%3600000)/60000)+'m)');}
+  lastDaily=Date.now();charges=Math.min(charges+1,5);successes.daily_count=(successes.daily_count||0)+1;
+  saveData();updateEnergySystem();checkSuccesses();toast('BONUS : +1 Charge !');vibrate([40,20,60,20,100]);
+}
 
 // ===== PWA =====
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});}
-function requestNotifPermission(){if(!('Notification' in window))return;if(Notification.permission==='default')Notification.requestPermission().then(p=>{if(p==='granted')toast('Notifications activees !');});}
 document.addEventListener('touchstart',()=>requestNotifPermission(),{once:true});
 document.addEventListener('click',()=>requestNotifPermission(),{once:true});
 
+
+function showBerzerk(){
+  bzActive=true;bzTapCount=0;bzTimeLeft=5.0;
+  const ov=document.getElementById('berzerk-overlay');if(!ov)return;
+  ov.style.display='flex';
+  document.getElementById('bz-count').innerText='0';
+  document.getElementById('bz-timer').innerText='5.0s';
+  document.getElementById('bz-bar').style.width='0%';
+  // Vibrate to alert
+  vibrate([200,100,200,100,200]);
+  // Show system notification if permission granted
+  showNotif('⚡ BERZERK !','Tape 50 fois en 5 secondes pour une Super Charge !','berzerk');
+  if(bzInterval)clearInterval(bzInterval);
+  bzInterval=setInterval(()=>{
+    bzTimeLeft-=0.1;
+    const t=document.getElementById('bz-timer');if(t)t.innerText=Math.max(0,bzTimeLeft).toFixed(1)+'s';
+    if(bzTimeLeft<=0){
+      clearInterval(bzInterval);bzInterval=null;
+      dismissBerzerk(false);
+    }
+  },100);
+}
+
+function berzerkTap(e){
+  if(e)e.preventDefault();
+  if(!bzActive)return;
+  bzTapCount++;
+  const bc=document.getElementById('bz-count');if(bc)bc.innerText=bzTapCount;
+  const bar=document.getElementById('bz-bar');if(bar)bar.style.width=Math.min(100,bzTapCount/50*100)+'%';
+  vibrate([8]);
+  // Flash tap
+  const tap=document.getElementById('bz-tap');
+  if(tap){tap.style.transform='scale(0.9)';setTimeout(()=>tap.style.transform='',80);}
+  if(bzTapCount>=50){
+    clearInterval(bzInterval);bzInterval=null;
+    dismissBerzerk(true);
+  }
+}
+
+function berzerkClick(){
+  // Legacy small button - now opens the fullscreen
+  if(!bzActive)showBerzerk();
+  else berzerkTap(null);
+}
+
+function dismissBerzerk(won){
+  bzActive=false;
+  const ov=document.getElementById('berzerk-overlay');if(ov)ov.style.display='none';
+  if(won){
+    superCharge=true;successes.berzerk=true;saveData();checkSuccesses();
+    toast('BERZERK REUSSI ! Super Charge activee !',5000);
+    vibrate([100,50,200,50,400,50,600]);
+    showNotif('💥 SUPER CHARGE !','Prochain pack garanti Metal ou mieux !','win');
+  }else{
+    toast('Berzerk rate... Prochaine fois !',3000);
+  }
+  // Hide the old small button
+  const btn=document.getElementById('berzerk-btn');if(btn)btn.style.display='none';
+}
+
+// ===== IN-APP NOTIFICATIONS =====
+const notifQueue=[];
+let notifLock=false;
+
+function showNotif(title,body,type){
+  const panel=document.getElementById('notif-panel');if(!panel)return;
+  const card=document.createElement('div');card.className='notif-card';
+  const icons={berzerk:'⚡',win:'🏆',pack:'📦',message:'💬',overload:'🔋',daily:'🌅',gift:'🎁',default:'🔔'};
+  const icon=icons[type]||icons.default;
+  card.innerHTML='<span class="n-icon">'+icon+'</span><span class="n-title">'+title+'</span><div class="n-body">'+body+'</div>';
+  card.onclick=()=>dismissNotif(card);
+  panel.appendChild(card);
+  setTimeout(()=>dismissNotif(card),5000);
+  // Also try system notification
+  if('Notification' in window&&Notification.permission==='granted'){
+    try{new Notification(title,{body,icon:'./logo.png'});}catch(e){}
+  }
+}
+
+function dismissNotif(card){
+  card.classList.add('out');
+  setTimeout(()=>card.remove(),300);
+}
+
+function requestNotifPermission(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='default'){
+    Notification.requestPermission().then(p=>{
+      if(p==='granted'){
+        showNotif('Notifications activees !','Tu recevras des alertes importantes.','default');
+      }
+    });
+  }
+}
+
+// Schedule energy full notification
+function scheduleEnergyNotif(){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const maxC=(equippedPassives&&equippedPassives.montre)?4:3;
+  if(charges<maxC){
+    const remMs=COOLDOWN-(Date.now()-lastRecharge);
+    setTimeout(()=>{
+      if(charges>=maxC)return;
+      showNotif('Energie pleine !','Viens ouvrir un pack !','pack');
+    },remMs);
+  }
+}
+
+// Watch for overload ready
+setInterval(()=>{
+  const diff=Date.now()-lastSkillTime;
+  if(diff>=SKILL_CD&&diff<SKILL_CD+5000&&window._fbReady){
+    showNotif('Overload pret !','L\'Overload est rechargee, viens l\'utiliser !','overload');
+  }
+},5000);
+
+// ===== BACKPACK ITEM POPUP =====
+let pendingUseKey=null;
+const ITEMS_EFFECTS={
+  loupe:'Revele la rarete de ta prochaine carte AVANT d\'ouvrir le pack. Si ca ne te plait pas, tu peux attendre.',
+  aimant:'Pendant 30 minutes, chaque doublon rapporte +3 charges Overload au lieu de 1.',
+  trefle:'Ton prochain tirage a +5% de chance d\'obtenir une rarete superieure (Epique devient Legendaire, etc.).',
+  bombe:'Choisit une carte dans ta collection et change la couleur de sa bordure de facon permanente.',
+  talkie:'Envoie un message flash (emoji ou mot) visible par tous les joueurs connectes pendant 5 secondes.',
+  ticket:'Lance la roue de la fortune immediatement sans attendre le reset de minuit.',
+  montre:'Artefact passif : augmente ton maximum de charges a 4 et accelere legerement la recharge.',
+  badge:'Artefact passif : affiche une icone speciale sur ton profil communautaire.',
+};
+const ITEMS_USE_LABEL={
+  loupe:'ACTIVER',aimant:'ACTIVER',trefle:'ACTIVER',bombe:'UTILISER',
+  talkie:'ENVOYER',ticket:'LANCER LA ROUE',montre:'EQUIPER',badge:'EQUIPER',
+};
+
+function openItemDetail(key){
+  const item=ITEMS_DEF[key];if(!item)return;
+  const qty=backpackItems[key]||0;const isEq=!!equippedPassives[key];
+  pendingUseKey=key;
+  document.getElementById('bpim-icon').innerText=item.icon;
+  document.getElementById('bpim-title').innerText=item.name;
+  document.getElementById('bpim-desc').innerText=item.cat==='passive'?'Artefact Passif — equipe sur ton profil, effet permanent.':'Consommable — usage unique.';
+  document.getElementById('bpim-effect').innerText=ITEMS_EFFECTS[key]||item.desc;
+  document.getElementById('bpim-qty').innerText='Quantite: '+qty+(isEq?' — EQUIPE':'');
+  const useBtn=document.getElementById('bpim-use-btn');
+  if(useBtn){
+    useBtn.innerText=ITEMS_USE_LABEL[key]||(item.cat==='passive'?(isEq?'DESEQUIPER':'EQUIPER'):'UTILISER');
+    useBtn.disabled=qty<=0;
+    useBtn.style.opacity=qty<=0?'0.4':'1';
+  }
+  document.getElementById('bp-item-modal').style.display='flex';
+}
+
+function confirmUseItem(){
+  closeModal('bp-item-modal');
+  if(pendingUseKey)useItem(pendingUseKey);
+}
+
+// Override renderBackpackItems to use the new popup
+function renderBackpackItems(){
+  const cats={consumable:'bp-consumables',fun:'bp-fun',passive:'bp-passive'};
+  Object.values(cats).forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='';});
+  Object.entries(ITEMS_DEF).forEach(([key,item])=>{
+    const qty=backpackItems[key]||0,isEq=!!equippedPassives[key];
+    const div=document.createElement('div');
+    div.className='item-slot'+(qty===0?' empty':'')+(isEq?' equipped':'');
+    div.innerHTML='<div class="item-icon">'+item.icon+'</div><div class="item-name">'+item.name+'</div>'+(qty>0?'<div class="item-qty">x'+qty+'</div>':'');
+    // Always clickable to show info, even if empty
+    div.onclick=()=>openItemDetail(key);
+    div.style.cursor='pointer';
+    const catEl=document.getElementById(cats[item.cat]);if(catEl)catEl.appendChild(div);
+  });
+}
+
+// ===== COMPLEX QUESTS =====
+const QUESTS_POOL=[
+  // Tier 1 — Actions simples
+  {label:'Ouvre 3 packs aujourd\'hui',reward:'+1 Charge',icon:'📦',max:3,
+   progress:()=>packOpenTimestamps.filter(t=>Date.now()-t<86400000).length,
+   done:()=>packOpenTimestamps.filter(t=>Date.now()-t<86400000).length>=3},
+  {label:'Lance la roue de la fortune',reward:'+1 Charge',icon:'🎡',max:1,
+   progress:()=>(lastWheel>=midnight()?1:0),done:()=>lastWheel>=midnight()},
+  {label:'Reclame le bonus quotidien',reward:'Succes',icon:'🌅',max:1,
+   progress:()=>(lastDaily>=midnight()?1:0),done:()=>lastDaily>=midnight()},
+  // Tier 2 — Collections
+  {label:'Possede 1 carte de chaque collection (Classique + Ninja + Rider)',reward:'+2 Charges',icon:'🗂',max:3,
+   progress:()=>([members,ninjaMembers,riderMembers].filter(pool=>pool.some(m=>Object.values(userInventory[m.id]||{}).some(v=>v))).length),
+   done:()=>[members,ninjaMembers,riderMembers].every(pool=>pool.some(m=>Object.values(userInventory[m.id]||{}).some(v=>v)))},
+  {label:'Obtiens 1 carte Epique ou mieux',reward:'+2 Charges',icon:'⚡',max:1,
+   progress:()=>Object.values(userInventory).some(v=>v.epic||v.legendary||v.code)?1:0,
+   done:()=>Object.values(userInventory).some(v=>v.epic||v.legendary||v.code)},
+  {label:'Debloquer 2 cartes Ninja',reward:'+1 Charge',icon:'🥷',max:2,
+   progress:()=>ninjaMembers.filter(m=>Object.values(userInventory[m.id]||{}).some(v=>v)).length,
+   done:()=>ninjaMembers.filter(m=>Object.values(userInventory[m.id]||{}).some(v=>v)).length>=2},
+  {label:'Avoir Malo ET Lilian dans ta collection',reward:'+1 Charge',icon:'👥',max:2,
+   progress:()=>['malo','lilian'].filter(id=>Object.values(userInventory[id]||{}).some(v=>v)).length,
+   done:()=>['malo','lilian'].every(id=>Object.values(userInventory[id]||{}).some(v=>v))},
+  // Tier 3 — Skill challenges
+  {label:'Reussir l\'Overload parfait aujourd\'hui',reward:'+1 Charge',icon:'🔋',max:1,
+   progress:()=>(successes.overload_ok_today?1:0),done:()=>!!successes.overload_ok_today},
+  {label:'Completel Overload ET lance la roue le meme jour',reward:'+3 Charges',icon:'⚡🎡',max:2,
+   progress:()=>(successes.overload_ok?1:0)+(lastWheel>=midnight()?1:0),
+   done:()=>!!(successes.overload_ok&&lastWheel>=midnight())},
+  {label:'Gagner a la Loterie (mise de 2 charges)',reward:'+4 Charges',icon:'🎰',max:1,
+   progress:()=>(successes.q_lotto_win_today?1:0),done:()=>!!successes.q_lotto_win_today},
+  // Tier 4 — Social & exploration
+  {label:'Chatter avec un autre joueur',reward:'Item aleatoire',icon:'💬',max:1,
+   progress:()=>(successes.q_chat_today?1:0),done:()=>!!successes.q_chat_today},
+  {label:'Envoyer un cadeau a un ami',reward:'Item aleatoire',icon:'🎁',max:1,
+   progress:()=>(successes.gifted?1:0),done:()=>!!successes.gifted},
+  {label:'Acheter au Marche Noir',reward:'+3 Doublons',icon:'🛒',max:1,
+   progress:()=>(successes.market_bought?1:0),done:()=>!!successes.market_bought},
+  // Tier 5 — Ultra difficile
+  {label:'Obtiens 3 raretés différentes de Malo (STD + Metal + Epique)',reward:'+3 Charges',icon:'💎',max:3,
+   progress:()=>{const inv=userInventory['malo']||{};return ['standard','metal','epic'].filter(r=>inv[r]).length;},
+   done:()=>{const inv=userInventory['malo']||{};return !!(inv.standard&&inv.metal&&inv.epic);}},
+  {label:'Lance Berzerk ET reussis-le',reward:'Super Charge garantie',icon:'💥',max:1,
+   progress:()=>(successes.berzerk?1:0),done:()=>!!successes.berzerk},
+  {label:'Ouvre un pack Eclipse (apres 22h)',reward:'+2 Charges',icon:'🌑',max:1,
+   progress:()=>(successes.eclipse_pack?1:0),done:()=>!!successes.eclipse_pack},
+  {label:'Publie une creation dans le Studio',reward:'+1 Charge',icon:'🖌',max:1,
+   progress:()=>(successes.studio_published?1:0),done:()=>!!successes.studio_published},
+  {label:'Lancer ET terminer une Mission passive',reward:'+2 Charges',icon:'🗺',max:1,
+   progress:()=>(successes.missions_done?1:0),done:()=>(successes.missions_done||0)>=1},
+];
+
+function getDayQuests(){
+  const seed=midnight();
+  const pool=[...QUESTS_POOL];
+  // Fisher-Yates shuffle with seed
+  for(let i=pool.length-1;i>0;i--){const j=(seed*(i+7))%(i+1);[pool[i],pool[j]]=[pool[j],pool[i]];}
+  // Pick 5: one from each tier roughly
+  return pool.slice(0,6);
+}
+
+function openQuests(){const el=document.getElementById('quests-modal');if(el)el.style.display='flex';renderQuests();}
+function renderQuests(){
+  const el=document.getElementById('quests-list');if(!el)return;el.innerHTML='';
+  const now=new Date();
+  const qd=document.getElementById('quest-date');if(qd)qd.innerText=now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear();
+  getDayQuests().forEach(q=>{
+    let prog,done;
+    try{prog=Math.min(q.progress(),q.max);done=q.done();}catch(e){prog=0;done=false;}
+    const d=document.createElement('div');d.className='qitem';d.style.opacity=done?'.6':'1';
+    const pct=Math.round(prog/q.max*100);
+    const diff=q.max>=3?'<span style="font-size:.5rem;color:#ff6b00;background:rgba(255,107,0,.15);padding:1px 6px;border-radius:8px;margin-left:6px;">CHALLENGE</span>':'';
+    d.innerHTML=
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
+      '<span style="font-size:.74rem;flex:1;line-height:1.4;">'+q.icon+' '+q.label+diff+'</span>'+
+      '<span class="qbadge" style="margin-left:8px;flex-shrink:0;">'+(done?'✓ FAIT':prog+'/'+q.max)+'</span>'+
+      '</div>'+
+      '<div style="font-size:.6rem;color:var(--primary);margin-top:3px;">Recompense: '+q.reward+'</div>'+
+      '<div class="qbar"><div class="qfill" style="width:'+pct+'%;'+(done?'background:#39ff14;':'')+'"></div></div>';
+    el.appendChild(d);
+  });
+  // Reset today's overload tracker
+  successes.overload_ok_today=successes.overload_ok;
+}
+
+// ===== ENHANCED STUDIO =====
+// Add text overlay tool to studio
+function setStudioTool(tool){
+  ['filter','aura','sticker','border','rotate'].forEach(t=>{
+    document.getElementById('stool-'+t)?.classList.toggle('active',t===tool);
+    const p=document.getElementById('studio-'+t+'-panel');
+    if(p)p.style.display=t===tool?(t==='sticker'?'block':'flex'):'none';
+  });
+  studioTextMode=(tool==='text');
+}
+
+// Enhanced studio canvas drag for stickers
+function initStudioDrag(){
+  const canvas=document.getElementById('studio-canvas');if(!canvas)return;
+  let dragging=false,dragIdx=-1,ox=0,oy=0;
+  canvas.addEventListener('touchstart',e=>{
+    const r=canvas.getBoundingClientRect();
+    const tx=(e.touches[0].clientX-r.left)*(220/r.width);
+    const ty=(e.touches[0].clientY-r.top)*(300/r.height);
+    // Find nearest sticker within 20px
+    dragIdx=studioState.stickers.findIndex(s=>Math.hypot(s.x-tx,s.y-ty)<20);
+    if(dragIdx>=0){dragging=true;ox=tx-studioState.stickers[dragIdx].x;oy=ty-studioState.stickers[dragIdx].y;}
+  },{passive:true});
+  canvas.addEventListener('touchmove',e=>{
+    if(!dragging||dragIdx<0)return;
+    const r=canvas.getBoundingClientRect();
+    const tx=(e.touches[0].clientX-r.left)*(220/r.width);
+    const ty=(e.touches[0].clientY-r.top)*(300/r.height);
+    studioState.stickers[dragIdx].x=Math.max(10,Math.min(210,tx-ox));
+    studioState.stickers[dragIdx].y=Math.max(10,Math.min(290,ty-oy));
+    applyStudioFilter(studioState.filter);
+  },{passive:true});
+  canvas.addEventListener('touchend',()=>{dragging=false;dragIdx=-1;});
+}
+setTimeout(initStudioDrag,1000);
+
+
+
+
+function previewStudioItem(item){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:40000;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';
+  const img=document.createElement('img');img.src=item.dataUrl;img.style.cssText='max-width:240px;max-height:340px;border-radius:14px;border:3px solid var(--primary);box-shadow:0 0 40px rgba(0,210,255,.4);';
+  const name=document.createElement('div');name.style.cssText='color:#fff;font-size:.85rem;font-weight:700;margin-top:12px;';name.innerText=(item.pseudo||'?').toUpperCase();
+  const likes=document.createElement('div');likes.style.cssText='color:var(--primary);font-size:.75rem;margin-top:4px;';likes.innerText='❤️ '+(item.likes||0)+' likes';
+  const close=document.createElement('button');close.style.cssText='margin-top:18px;background:none;border:1px solid #444;color:#888;padding:8px 20px;border-radius:10px;cursor:pointer;';close.innerText='FERMER';
+  close.onclick=()=>ov.remove();ov.onclick=(e)=>{if(e.target===ov)ov.remove();};
+  ov.appendChild(img);ov.appendChild(name);ov.appendChild(likes);ov.appendChild(close);
+  document.body.appendChild(ov);
+}
 </script>
 </body>
-</html> 
+</html>
