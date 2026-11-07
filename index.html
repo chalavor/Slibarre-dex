@@ -721,6 +721,14 @@ body.card-open #sfx-btn,body.card-open #flame-btn,#intro-screen:not(.opened)~#sf
 .buffs{margin:0 0 10px;padding:8px 10px;border-radius:12px;background:rgba(255,210,74,.08);border:1px solid var(--gold);font-size:.68rem;}
 .flash-banner{position:fixed;top:max(10px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:99999;padding:10px 16px;border-radius:99px;background:linear-gradient(120deg,#ff3d8b,#bd00ff);color:#fff;font:600 .78rem var(--fb);box-shadow:0 8px 30px -6px #bd00ff;animation:flashIn .35s cubic-bezier(.2,1.4,.4,1);max-width:92vw;}
 @keyframes flashIn{from{transform:translate(-50%,-60px);opacity:0;}}
+#battle-ui{padding:8px 6px;}
+#battle-ui .bt-wrap{max-width:480px;}
+.bt-top{margin-bottom:3px;}
+#bt-log{min-height:0;max-height:46px;overflow:hidden;margin:5px 0;padding:5px 8px;font-size:.62rem;}
+#bt-log div{margin:1px 0;}
+#bt-hand{gap:5px;margin-top:4px;}#bt-hand .bt-ct{padding:4px 2px;}#bt-hand .ic img{width:38px;height:38px;}#bt-hand b{font-size:.5rem;}#bt-hand small{font-size:.48rem;}
+#bt-act .bt-act{margin-top:6px;}#bt-act .bt-act button{min-height:42px;}#bt-act .bt-quit{margin-top:6px;}
+.ar-wrap{margin-bottom:4px;border-radius:14px;}
 </style>
 </head>
 <body>
@@ -3584,19 +3592,28 @@ function popAt(x,y,z,txt,cls){
   if(!AR)return;const d=document.createElement('div');d.className='ar-pop '+(cls||'');d.textContent=txt;const p=proj(x,y,z);d.style.left=p[0]+'px';d.style.top=p[1]+'px';AR.hud.appendChild(d);setTimeout(()=>d.remove(),1100);
 }
 function chipHTML(U){const u=U.u,hp=Math.max(0,u.dh==null?u.hp:u.dh);return '<div class="ar-bar"><i style="width:'+Math.max(0,hp/u.max*100)+'%"></i></div><small>❤️'+hp+' ⚔️'+u.atk+((u.frozen?' ❄️':'')+(u.weak?' 🐌':'')+(u.cor?' ☠️':''))+'</small>';}
+function fitCamera(W,H){
+  const d=[0,.86,.5],l=Math.hypot(d[0],d[1],d[2]);d[0]/=l;d[1]/=l;d[2]/=l;const T=[0,0,.3];
+  const pts=[[-4.5,0,-7.9],[4.5,0,-7.9],[-4.5,0,7.9],[4.5,0,7.9],[0,6.4,-ZT],[0,6.4,ZT],[0,2.6,-7.9],[0,2.6,7.9]];
+  AC.aspect=W/H;AC.updateProjectionMatrix();
+  for(let dist=10;dist<70;dist+=.5){
+    AC.position.set(T[0]+d[0]*dist,T[1]+d[1]*dist,T[2]+d[2]*dist);AC.lookAt(T[0],T[1],T[2]);AC.updateMatrixWorld();
+    let ok=true;for(let i=0;i<pts.length;i++){VV.set(pts[i][0],pts[i][1],pts[i][2]).project(AC);if(Math.abs(VV.x)>.97||Math.abs(VV.y)>.97){ok=false;break;}}
+    if(ok)return dist;
+  }
+  return 30;
+}
 function arenaMount(wrap,onSlot){
   arenaUnmount();
   const cv=document.createElement('canvas'),hud=document.createElement('div');cv.className='ar-cv';hud.className='ar-hud';
   wrap.innerHTML='';wrap.appendChild(cv);wrap.appendChild(hud);
-  const W=Math.min(wrap.clientWidth||360,440),H=Math.round(Math.min(window.innerHeight*.56,W*1.42)),dpr=Math.min(window.devicePixelRatio||1,2);
+  const W=Math.min(wrap.clientWidth||360,480),H=Math.round(Math.max(320,Math.min(window.innerHeight-250,W*1.7))),dpr=Math.min(window.devicePixelRatio||1,2);
   wrap.style.height=H+'px';cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.width=W+'px';cv.style.height=H+'px';
   VV=VV||new THREE.Vector3();
   AS=new THREE.Scene();AS.add(new THREE.HemisphereLight(0xffffff,0x556655,.9));
   const dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(4,9,6);AS.add(dl);
   const root=buildArena2(true);AS.add(root);
-  AC=new THREE.PerspectiveCamera(40,W/H,.1,80);
-  const tn=Math.tan(20*Math.PI/180),dist=Math.max(5.1/(tn*(W/H)),7.9/tn);
-  AC.position.set(0,.79*dist,.61*dist+.4);AC.lookAt(0,0,.4);AC.updateMatrixWorld();AC.updateProjectionMatrix();
+  AC=new THREE.PerspectiveCamera(40,W/H,.1,120);fitCamera(W,H);
   AR={cv,hud,W,H,dpr,root,tw:root.userData.tw,units:new Map(),slots:[],cc:[],stop:false,t0:performance.now(),shake:[0,0]};
   LX.forEach((lx,i)=>{const s=document.createElement('button');s.className='ar-slot';s.onclick=()=>onSlot&&onSlot(i);const p=proj(lx,.1,ZM);s.style.left=p[0]+'px';s.style.top=p[1]+'px';hud.appendChild(s);AR.slots.push(s);});
   [0,1].forEach(k=>{const c=document.createElement('div');c.className='ar-castle '+(k?'me':'foe');hud.appendChild(c);put(c,proj(0,4.3,k?ZT:-ZT));AR.cc.push(c);});
@@ -3709,15 +3726,13 @@ function rtMount(wrap,H){
   arenaUnmount();rtUnmount();
   const cv=document.createElement('canvas'),hud=document.createElement('div');cv.className='ar-cv';hud.className='ar-hud rt';
   wrap.innerHTML='';wrap.appendChild(cv);wrap.appendChild(hud);
-  const W=Math.min(wrap.clientWidth||360,460),Ht=Math.round(Math.min(window.innerHeight*.56,W*1.42)),dpr=Math.min(window.devicePixelRatio||1,2);
+  const W=Math.min(wrap.clientWidth||360,480),Ht=Math.round(Math.max(320,Math.min(window.innerHeight-280,W*1.7))),dpr=Math.min(window.devicePixelRatio||1,2);
   wrap.style.height=Ht+'px';cv.width=Math.round(W*dpr);cv.height=Math.round(Ht*dpr);cv.style.width=W+'px';cv.style.height=Ht+'px';
   VV=VV||new THREE.Vector3();
   AS=new THREE.Scene();AS.add(new THREE.HemisphereLight(0xffffff,0x4a6a4a,.95));
   const dl=new THREE.DirectionalLight(0xfff4d6,.85);dl.position.set(4,10,6);AS.add(dl);
   const root=buildArena2();AS.add(root);
-  AC=new THREE.PerspectiveCamera(40,W/Ht,.1,90);
-  const tn=Math.tan(20*Math.PI/180),dist=Math.max(5.1/(tn*(W/Ht)),7.9/tn);
-  AC.position.set(0,.8*dist,.6*dist+.3);AC.lookAt(0,0,.3);AC.updateMatrixWorld();AC.updateProjectionMatrix();
+  AC=new THREE.PerspectiveCamera(40,W/Ht,.1,120);fitCamera(W,Ht);
   RTA=AR={cv,hud,W,H:Ht,dpr,root,H_:H,units:new Map(),stop:false,last:performance.now(),acc:0,uiT:0,ptr:null,down:null,tip:null,endCalled:false,bc:[]};
   [0,1].forEach(k=>{const c=document.createElement('div');c.className='ar-castle '+(k?'foe':'me');hud.appendChild(c);RTA.bc.push(c);});
   const ground=e=>{const r=cv.getBoundingClientRect(),nx=((e.clientX-r.left)/r.width)*2-1,ny=-((e.clientY-r.top)/r.height)*2+1;VV.set(nx,ny,.5).unproject(AC);VV.sub(AC.position).normalize();const t=-AC.position.y/VV.y;return{x:AC.position.x+VV.x*t,z:AC.position.z+VV.z*t};};
@@ -3862,9 +3877,9 @@ const st=(()=>{try{return Object.assign({home:null,claimed:{},custom:[],ov:{}},J
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(st));}catch(e){}window.slbSyncSoon&&slbSyncSoon();};
 // [id, nom, lat, lng, emoji, zone]   (coordonnées approximatives : ajuste-les avec le mode modo si besoin)
 const PL=[
- ['v1','Château de Vitré',48.1228,-1.2085,'🏰','Vitré'],['v2','Église Notre-Dame',48.1236,-1.2098,'⛪','Vitré'],['v3','Rue Baudrairie',48.1240,-1.2090,'🏘️','Vitré'],
- ['v4','Place du Marillais',48.1233,-1.2135,'⛲','Vitré'],['v5','Jardin du Parc',48.1262,-1.2062,'🌳','Vitré'],['v6','Tertres Noirs',48.1262,-1.2131,'🌅','Vitré'],
- ['v7','Gare de Vitré',48.1170,-1.2058,'🚉','Vitré'],['v8','Hôtel de ville',48.1245,-1.2078,'🏛️','Vitré'],['v9','Château des Rochers-Sévigné',48.0925,-1.1735,'🏯','Vitré'],
+ ['vt1','Château de Vitré',48.12452,-1.21521,'🏰','Vitré'],['vt2','Église Notre-Dame',48.12361,-1.20639,'⛪','Vitré'],['vt3','Gare de Vitré',48.12250,-1.21167,'🚉','Vitré'],
+ ['vt4','Vitré · Centre historique',48.12432,-1.21370,'🏘️','Vitré'],['vt5','Rue Baudrairie',48.12390,-1.21200,'🏚️','Vitré'],['vt6','Château des Rochers-Sévigné',48.10522,-1.19545,'🏯','Vitré'],
+ ['vt7','Le Pertre · Bourg',48.03560,-1.03580,'🌲','Vitré'],['vt8','Mecé · Église',48.23720,-1.30249,'⛪','Vitré'],
  ['b1','Château de Fougères',48.3526,-1.2005,'🏰','Bretagne'],['b2','Rennes · Place du Parlement',48.1114,-1.6820,'🏛️','Bretagne'],['b3','Saint-Malo · Remparts',48.6493,-2.0257,'⚓','Bretagne'],
  ['b4','Cancale · Pointe du Grouin',48.7129,-1.8501,'🦪','Bretagne'],['b5','Dinan · Tour de l’Horloge',48.4553,-2.0502,'🕰️','Bretagne'],['b6','Cap Fréhel · Phare',48.6836,-2.3190,'🗼','Bretagne'],
  ['b7','Mont-Saint-Michel',48.6361,-1.5115,'🏝️','Bretagne'],['b8','Paimpont · Brocéliande',48.0222,-2.1736,'🧙','Bretagne'],['b9','Ploumanac’h · Rochers roses',48.8300,-3.4880,'🪨','Bretagne'],
